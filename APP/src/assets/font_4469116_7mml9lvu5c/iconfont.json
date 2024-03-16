@@ -1,0 +1,51 @@
+{
+  "id": "4469116",
+  "name": "aaa",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "9687984",
+      "name": "社团",
+      "font_class": "shetuan",
+      "unicode": "e61b",
+      "unicode_decimal": 58907
+    },
+    {
+      "icon_id": "13040739",
+      "name": "首页",
+      "font_class": "shouye",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "13911915",
+      "name": "公告资讯  icon-announcement Information",
+      "font_class": "gonggaozixunicon-announcementInformation",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
+      "icon_id": "16080009",
+      "name": "用户管理",
+      "font_class": "yonghuguanli",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    },
+    {
+      "icon_id": "21072926",
+      "name": "活动-赛事管理",
+      "font_class": "huodong-saishiguanli",
+      "unicode": "e6d2",
+      "unicode_decimal": 59090
+    },
+    {
+      "icon_id": "31850950",
+      "name": "icon-person-renwu",
+      "font_class": "icon-person-renwu",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    }
+  ]
+}
