@@ -20,6 +20,9 @@
     import SideMenu from '../components/mainbox/SideMenu.vue'
 </script>
 
-<style scoped lang="scss">
-    
+<style lang="scss">
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
 </style>

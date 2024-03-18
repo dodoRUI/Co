@@ -15,7 +15,7 @@
             </div>
             <div class="form-container sign-in-container">
 
-                <div class="form">
+                <div class="form" @keydown.enter="handleLogin(loginForm)">
                     <h1>用户登录</h1>
                     <input type="text" placeholder="学号" v-model="loginForm.userid">
                     <input type="password" placeholder="密码" v-model="loginForm.password">
@@ -49,8 +49,10 @@ import { ElMessage } from 'element-plus'
 import { onMounted, reactive } from 'vue';
 import axios from 'axios'
 import {useRouter} from 'vue-router'
+import {useHomeStore} from '@/stores/home'
 
 const router = useRouter()
+const store = useHomeStore()
 const loginForm = reactive({
     userid: '',
     password: ''
@@ -67,12 +69,12 @@ onMounted(() => {
 function handleLogin(loginForm) {
     axios.post("/adminapi/users/login",loginForm).then(res => {
         if(res.data.ok===1){
-            localStorage.setItem("token",res.data.data)
+            // console.log(res.data.data)
+            store.addUserInfo(res.data.data)
             router.push('/home')
         }else{
             ElMessage.error('用户不存在或密码错误！')
         }
-        console.log(res)
     })
 }
 </script>

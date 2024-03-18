@@ -10,10 +10,12 @@
                 </el-icon>
             </div>
 
+            <img src="../../assets/SWUSTLOGO.png" title="西南科技大学">
+
             <span>西南科技大学社团管理系统</span>
         </div>
         <div class="right">
-            <span>欢迎 admin 回来</span>
+            <span> {{store.userInfo.username}} </span>
             <el-dropdown>
                 <el-icon>
                     <UserFilled />
@@ -45,6 +47,7 @@ function handleCenter() {
     router.push('/center')
 }
 function logOut(){
+    store.clearUserInfo()
     localStorage.removeItem("token")
     router.push('/login')
 }
@@ -54,23 +57,28 @@ function logOut(){
 .el-header {
     margin: 0;
     padding: 0;
-    height: 50px;
+    height: 60px;
     background-color: rgb(64, 158, 255);
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
+    img{
+        width: 59px;
+        border-radius: 50%;
+    }
 
     .left {
         display: flex;
         align-items: center;
 
         span {
-            font-size: 18px;
+            margin-left: 15px;
+            font-size: 22px;
         }
 
         i {
-            font-size: 20px;
+            font-size: 30px;
             margin: 15px;
         }
 
@@ -85,15 +93,19 @@ function logOut(){
         align-items: center;
 
         span {
-            font-size: 16px;
+            font-size: 18px;
         }
 
         i {
-            font-size: 20px;
+            font-size: 30px;
             color: white;
             margin: auto 15px;
             outline: none;
             border: none;
+            transition: all 0.2s ease-in;
+            &:hover{
+                transform: scale(1.1);
+            }
         }
     }
 }
