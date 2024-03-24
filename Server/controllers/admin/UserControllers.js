@@ -57,8 +57,84 @@ const UserController = {
             })
         }
 
+    },
+    changePassword: async (req, res) => {
+        var result = await UserServices.changepassword(req.body)
+        if (result.affectedRows === 0) {
+            res.send({
+                ActionType: "Error"
+            })
+        } else {
+            res.send({
+                ActionType: "OK"
+            })
+        }
+    },
+    addConfirm: async (req, res) => {
+        var result = await UserServices.addConfirm(req.body)
+        if (result.length === 0) {
+            res.send({
+                ActionType: "OK"
+            })
+        } else {
+            res.send({
+                ActionType: "NO"
+            })
+        }
+    },
+    userAdd: async (req, res) => {
+        const { userid, username, gender, institute, major, classid, profile, role } = req.body
+        const avatar = req.file ? `/avatarUploads/${req.file.filename}` : ""
+        var result = await UserServices.userAdd({ userid, username, gender, institute, major, classid, profile, role, avatar })
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+    userlistGet: async (req, res) => {
+        const result = await UserServices.userlistGet({ page: req.params.page })
+        res.send({
+            data: result.data,
+            total: result.total,
+            ActionType: "OK"
+        })
+    },
+    getUser: async (req, res) => {
+        const result = await UserServices.getUser(req.body)
+        res.send({
+            data: result
+        })
+    },
+    userDelete: async (req, res) => {
+        const result = await UserServices.userDelete({ userid: req.params.userid })
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+    userUpdate: async (req, res) => {
+        const result = await UserServices.userUpdate(req.body)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+    userFilter: async (req, res) => {
+        const result = await UserServices.userFilter(req.query)
+        console.log(result)
+        if (result.total>0) {
+            res.send({
+                data: result.data,
+                total: result.total,
+                ActionType: "OK"
+            })
+        }else{
+            res.send({ActionType: "NO"})
+        }
+    },
+    userMultipleDelete:async (req, res) => {
+        const result = await UserServices.userMultipleDelete(req.query)
+        res.send({
+            ActionType: result.affectedRows == req.query.users.length ? "OK" : "Error"
+        })
     }
-
 }
 
 module.exports = UserController

@@ -35,7 +35,6 @@ app.use((req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1]  // 这里authorization首字母必须小写，因为接收到所有的req请求头属性都会变成小写
   if (token) {
     const payload = JWT.verify(token)
-    console.log(payload)
     if (payload) {
       // 重新计算token过期时间
       const newToken = JWT.generate({

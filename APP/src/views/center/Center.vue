@@ -7,7 +7,7 @@
                     <el-avatar :size="140" :src="avatarUrl" />
                     <h5 class="id">ID:{{ store.userInfo.userid }}</h5>
                     <h3 class="name">{{ store.userInfo.username }}</h3>
-                    <h5 class="authorization">{{ store.userInfo.role === 1 ? '管理员' : '社长' }}</h5>
+                    <h5 class="authorization">{{ store.userInfo.role === 9 ? '管理员' : '社长' }}</h5>
                 </el-card>
                 <el-card>
                     <template #header>
@@ -17,30 +17,46 @@
                     </template>
                     <div class="passEditor">
                         <div>
-                            <div class="tip">
+                            <div :class="!pwdForm.isCorrect ? ['tip'] : ['tip', 'hidden']">
                                 <el-icon style="color: red;">
                                     <CircleCloseFilled />
                                 </el-icon>
-                                密码错误
+                                <span>密码错误</span>
                             </div>
-                            <input type="password" v-model="pwdForm.oldPwd" placeholder="原密码"> 
+                            <input type="password" v-model="pwdForm.oldPwd" @input="() => { pwdForm.isCorrect = true }"
+                                placeholder="原密码">
                         </div>
+
                         <div>
-                            <div class="tip">
-                                <el-icon v-if="pwdForm.isLegal" style="color: green;"><CircleCheckFilled /></el-icon>
-                                <el-icon v-else style="color: red;"><WarningFilled /></el-icon>
-                                新密码长度必须在8-14位之间
+                            <div :class="pwdForm.blur1 ? ['tip'] : ['tip', 'hidden']">
+                                <el-icon v-if="pwdForm.isLegal" style="color: green;">
+                                    <CircleCheckFilled />
+                                </el-icon>
+                                <el-icon v-else style="color: red;">
+                                    <WarningFilled />
+                                </el-icon>
+                                <span v-show="!pwdForm.isLegal">新密码必须包含字母和数字，长度在8-14位之间</span>
                             </div>
-                            <input type="password" v-model="pwdForm.newPwd" @change="checkNewPwd" placeholder="新密码">
+                            <input type="password" v-model="pwdForm.newPwd" @input="checkNewPwd" placeholder="新密码">
                         </div>
+
                         <div>
-                            <div class="tip">
-                                <el-icon style="color: red;"><WarningFilled /></el-icon>
-                                两次输入不一致
+                            <div :class="pwdForm.blur2 ? ['tip'] : ['tip', 'hidden']">
+                                <el-icon v-if="pwdForm.isSame" style="color: green;">
+                                    <CircleCheckFilled />
+                                </el-icon>
+                                <el-icon v-else style="color: red;">
+                                    <WarningFilled />
+                                </el-icon>
+                                <span v-show="!pwdForm.isSame">两次输入不一致</span>
                             </div>
-                            <input type="password" v-model="pwdForm.newPwd2" placeholder="确认密码">
+                            <input type="password" v-model="pwdForm.newPwd2" @input="samePassword" placeholder="确认密码">
                         </div>
-                        <el-button type="primary" round @click="changePassword(pwdForm)">确认修改</el-button>
+                        <div class="button">
+                            <el-button type="primary" round @click="changePassword(pwdForm)">确认修改</el-button>
+                            <el-button type="reset" round @click="clearPwdForm(pwdForm)">重置</el-button>
+                        </div>
+
                     </div>
 
                 </el-card>
@@ -95,12 +111,14 @@
 <script setup>
 import { useHomeStore } from '../../stores/home';
 import { computed, reactive } from 'vue'
-import { Plus, Promotion, CircleCheckFilled, CircleCloseFilled ,WarningFilled} from '@element-plus/icons-vue'
+import { Plus, Promotion, CircleCheckFilled, CircleCloseFilled, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import upload from '@/utils/upload.js'
+import { useRouter } from 'vue-router'
 
 const store = useHomeStore();
+const router = useRouter()
 
 const { userid, username, profile, gender, avatar } = store.userInfo
 const userForm = reactive({     // 修改信息表单
@@ -112,16 +130,70 @@ const userForm = reactive({     // 修改信息表单
     file: null
 })
 
-const pwdForm = {
-    isLegal:true,
+const pwdForm = reactive({
+    isCorrect: true,
+    blur1: false,
+    blur2: false,
+    isLegal: false,
+    isSame: false,
     oldPwd: '',
     newPwd: '',
     newPwd2: ''
+})
+
+// 新密码检查
+function checkNewPwd() {
+    pwdForm.blur1 = true
+    var reg = /^(?=.*[a-zA-Z])(?=.*\d).+$/
+    var regLegal = reg.test(pwdForm.newPwd)
+    if (pwdForm.newPwd.length >= 8 && pwdForm.newPwd.length <= 14 && regLegal) {
+        pwdForm.isLegal = true
+    } else {
+        pwdForm.isLegal = false
+    }
+}
+// 两次密码输入一致性检查
+function samePassword() {
+    pwdForm.blur2 = true
+    pwdForm.isSame = pwdForm.newPwd === pwdForm.newPwd2
 }
 
 // 修改密码请求
-function addPassword(pwdForm) {
-    console.log(pwdForm)
+function changePassword(pwdForm) {
+    if (pwdForm.isLegal && pwdForm.isSame) {
+        axios.post('/adminapi/users/changepassword', {
+            userid,
+            password: pwdForm.oldPwd,
+            newpassword: pwdForm.newPwd,
+        }).then(res => {
+            if (res.data.ActionType === 'OK') {
+                ElMessage({
+                    message: '修改成功！请您重新登录',
+                    type: 'success',
+                })
+                store.clearUserInfo()
+                localStorage.removeItem("token")
+                router.push('/login')
+            }
+            else {
+                pwdForm.isCorrect = false
+                pwdForm.newPwd = ''
+                pwdForm.oldPwd = ''
+                pwdForm.newPwd2 = ''
+                pwdForm.blur1 = false
+                pwdForm.blur2 = false
+            }
+        })
+    }
+
+}
+// 重置密码单
+function clearPwdForm(pwdForm) {
+    pwdForm.blur1 = false
+    pwdForm.blur2 = false
+    pwdForm.oldPwd = ''
+    pwdForm.newPwd = ''
+    pwdForm.newPwd2 = ''
 }
 
 const genderOptions = [
@@ -172,6 +244,10 @@ async function submitForm(userForm) {
 </script>
 
 <style lang="scss" scoped>
+.hidden {
+    visibility: hidden;
+}
+
 .box-card {
     text-align: center;
     padding: 0;
@@ -202,29 +278,43 @@ async function submitForm(userForm) {
 }
 
 .passEditor {
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
+    padding-right: 10px;
 
-    div {
-        display: flex;
-        align-items: center;
-        justify-content: start;
+    >div {
+        height: 60px;
 
+        // background-color: red;
         input {
             border-top: none;
             border-left: none;
             border-right: none;
             border-bottom: 1px solid gray;
             outline: none;
-            font-size: 16px;
+            font-size: 14px;
             padding: 5px;
             margin-bottom: 10px;
+            width: 100%;
         }
 
-        .tip{
+        .tip {
+            margin-top: -5px;
             font-size: 12px;
+
+            span {
+                margin-left: 5px;
+                font-size: 11px;
+                color: red;
+            }
         }
+
+        .el-icon {
+            font-size: 14px;
+        }
+    }
+
+    .button {
+        height: auto;
+        text-align: center;
     }
 }
 

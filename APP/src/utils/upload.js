@@ -7,6 +7,7 @@ function upload(path, userForm) {
     for (let i in userForm) {
         params.append(i, userForm[i])
     }
+    console.log(params)
 
     return axios.post(path, params, {
         headers: {

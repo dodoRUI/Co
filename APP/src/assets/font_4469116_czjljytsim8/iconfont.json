@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "20226454",
+      "name": "性别_女",
+      "font_class": "xingbie_nv",
+      "unicode": "e631",
+      "unicode_decimal": 58929
+    },
+    {
+      "icon_id": "20226456",
+      "name": "性别_男",
+      "font_class": "xingbie_nan",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
       "icon_id": "9687984",
       "name": "社团",
       "font_class": "shetuan",
