@@ -4,6 +4,11 @@ import { ref } from 'vue'
 export const useHomeStore = defineStore('home',()=>{
     const isCollapse = ref(false)
     const userInfo = ref({})
+    const isGetterRouter = ref(false)
+
+    function changeGetterRouter(value){
+        isGetterRouter.value = value
+    }
 
     function toggleCollapse() {
         isCollapse.value = !isCollapse.value
@@ -19,8 +24,10 @@ export const useHomeStore = defineStore('home',()=>{
     }
 
     return {
+        isGetterRouter,
         isCollapse,
         userInfo,
+        changeGetterRouter,
         toggleCollapse,
         addUserInfo,
         clearUserInfo

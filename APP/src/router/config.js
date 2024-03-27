@@ -7,7 +7,6 @@ import ActivityAdd from '../views/activity/ActivityAdd.vue'
 import ActivityList from '../views/activity/ActivityList.vue'
 import UserList from '../views/users/UserList.vue'
 import UserAdd from '../views/users/UserAdd.vue'
-import Admin from '../views/users/Admin.vue'
 import News from '../views/news/News.vue'
 
 
@@ -39,15 +38,13 @@ const mainboxRoutes = [
     },
     {
         path:'/users/userlist',
-        component:UserList
+        component:UserList,
+        requireAdmin: true
     },
     {
         path:'/users/useradd',
-        component:UserAdd
-    },
-    {
-        path:'/users/admin',
-        component:Admin
+        component:UserAdd,
+        requireAdmin: true
     },
     {
         path:'/news',

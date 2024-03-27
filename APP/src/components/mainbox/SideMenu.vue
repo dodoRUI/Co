@@ -31,12 +31,11 @@
                     <el-menu-item index="/community/communitylist"><span>所有社团</span></el-menu-item>
                     <el-menu-item index="/community/communityadd"><span>成立社团</span></el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="/users">
+                <el-sub-menu index="/users" v-admin>
                     <template #title>
                         <i class="iconfont icon-yonghuguanli"></i>
                         <span>用户管理</span>
                     </template>
-                    <el-menu-item index="/users/admin"><span>管理员</span></el-menu-item>
                     <el-menu-item index="/users/useradd"><span>添加用户</span></el-menu-item>
                     <el-menu-item index="/users/userlist"><span>用户列表</span></el-menu-item>
                 </el-sub-menu>
@@ -52,6 +51,14 @@ import { useRoute } from 'vue-router';
 const route = useRoute()
 const store = useHomeStore()
 
+// 自定义指令，用于控制菜单显示权限
+const vAdmin = {
+    mounted(el){
+        if(store.userInfo.role !== 9){
+            el.parentNode.removeChild(el)
+        }
+    }
+}
 </script>
 
 <style lang="scss" scoped>

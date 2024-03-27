@@ -38,10 +38,7 @@
                 </div>
             </div>
         </div>
-    </div>
-
-
-
+    </div>   
 </template>
 
 <script setup>
@@ -71,6 +68,7 @@ function handleLogin(loginForm) {
         if(res.data.ok===1){
             // console.log(res.data.data)
             store.addUserInfo(res.data.data)
+            store.changeGetterRouter(false)
             router.push('/home')
         }else{
             ElMessage.error('用户不存在或密码错误！')
@@ -90,6 +88,7 @@ function handleLogin(loginForm) {
     width: 100%;
     height: 100vh;
     margin: 0 auto;
+    background: url('@/assets/渐变背景.png');
 }
 
 h1 {
