@@ -3,7 +3,7 @@
         <el-page-header icon="" title="社团管理系统" content="个人中心"></el-page-header>
         <el-row :gutter="20">
             <el-col :span="8">
-                <el-card class="box-card">
+                <el-card class="card">
                     <el-avatar :size="140" :src="avatarUrl" />
                     <h5 class="id">ID:{{ store.userInfo.userid }}</h5>
                     <h3 class="name">{{ store.userInfo.username }}</h3>
@@ -239,7 +239,6 @@ async function submitForm(userForm) {
             type: 'success',
         })
     }
-    // console.log(params)
 }
 </script>
 
@@ -248,11 +247,22 @@ async function submitForm(userForm) {
     visibility: hidden;
 }
 
-.box-card {
+.card {
+    height: 250px;
     text-align: center;
     padding: 0;
-    background: linear-gradient((to bottom, white, rgb(92, 174, 255)));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: linear-gradient(15deg, #75a1ff, #73ecff);
     position: relative;
+    border-radius: 15px;
+
+    .el-avatar{
+        box-sizing: content-box;
+        border: 2px solid white;
+    }
 
     .id {
         font-size: 14px;
@@ -281,7 +291,7 @@ async function submitForm(userForm) {
     padding-right: 10px;
 
     >div {
-        height: 60px;
+        height: 56px;
 
         // background-color: red;
         input {

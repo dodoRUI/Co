@@ -1,9 +1,8 @@
 <template>
     <div>
-        <el-page-header icon="" title="用户管理" content="用户列表"></el-page-header>
+        <!-- <el-page-header icon="" title="用户管理" content="用户列表"></el-page-header> -->
         <el-card class="userSearch">
-            <el-button type="danger" @click="deleteDialog=true">批量删除</el-button>
-            <el-button type="primary" plain @click="userFilter(filterUserForm)">筛选</el-button>
+            <el-button type="danger" @click="showDeleteDialog">批量删除</el-button>
             <el-input v-model="filterUserForm.userid" style="width: 150px" placeholder="用户ID" />
             <el-input v-model="filterUserForm.username" style="width: 120px" placeholder="姓名" />
             <el-select v-model="filterUserForm.gender" placeholder="性别" size="middle" style="width: 80px;">
@@ -17,73 +16,69 @@
                 <el-option v-for="item in instituteMajor[filterUserForm.institute]" :key="item" :label="item"
                     :value="item" />
             </el-select>
-            <el-button type="danger" plain @click="filterRemove">重置</el-button>
+            <el-button type="primary" @click="userFilter(filterUserForm)" round>筛选</el-button>
+            <el-button type="default" plain @click="filterRemove" round>重置</el-button>
         </el-card>
         <el-card class="userlist">
-            <el-scrollbar height="500px">
-                <el-table :data="tableData" 
-                :default-sort="{ prop: 'date', order: 'descending' }"
-                style="width: 100%"
-                :cell-style="{ padding: '0px' }" 
-                :row-style="{ height: '20px' }" 
-                ref="multipleTableRef"
+            <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width: 100%"
+                :cell-style="{ padding: '0px' }" :row-style="{ height: '20px' }" ref="multipleTableRef"
                 @selection-change="handleSelectionChange">
-                    <el-table-column type="selection" width="30" />
-                    <el-table-column prop="userid" label="ID" sortable />
-                    <el-table-column prop="avatar" label="头像">
-                        <template #default="scope">
-                            <div v-if="scope.row.avatar">
-                                <el-avatar :size="40" :src="'http://localhost:3000' + scope.row.avatar" />
-                            </div>
-                            <div v-else>
-                                <el-avatar :size="40"
-                                    src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
-                            </div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="username" label="姓名" />
-                    <el-table-column prop="gender" label="性别">
-                        <template #default="scope">
-                            <div v-if="scope.row.gender!==-1">{{ scope.row.gender == 1 ? '男' : '女' }}</div>
-                            <div v-else>保密</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="institute" label="学院" />
-                    <el-table-column prop="major" label="专业" />
-                    <el-table-column prop="classid" label="班级" />
-                    <el-table-column label="社团">
-                        <template #default="scope">
-                            <div class="showInfo" @click="showCommunities">查看社团</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="role" label="权限">
-                        <template #default="scope">
-                            <div v-if="scope.row.role == 9">
-                                <el-tag type="warning">管理员</el-tag>
-                            </div>
-                            <div v-else-if="scope.row.role == 1">
-                                <el-tag type="primary">社长</el-tag>
-                            </div>
-                            <div v-if="scope.row.role == 0">
-                                <el-tag type="info">用户</el-tag>
-                            </div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="130px">
-                        <template #default="scope">
-                            <el-button type="primary" round @click="userEdit(scope.row)">编辑</el-button>
-                            <el-popconfirm title="确认删除" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
-                                cancel-button-text="取消" confirm-button-type="danger" @confirm="userDelete(scope.row)">
-                                <template #reference>
-                                    <el-button type="danger" circle :icon="Delete"></el-button>
-                                </template>
-                            </el-popconfirm>
-                        </template>
-                    </el-table-column>
-                </el-table>
-            </el-scrollbar>
-            <el-pagination v-model:current-page="currentPage" layout="total,prev, pager, next,jumper" :total="total"
-                @current-change="pageChange" />
+                <el-table-column type="selection" width="30" />
+                <el-table-column prop="userid" label="ID" sortable />
+                <el-table-column prop="avatar" label="头像">
+                    <template #default="scope">
+                        <div v-if="scope.row.avatar">
+                            <el-avatar :size="40" :src="'http://localhost:3000' + scope.row.avatar" />
+                        </div>
+                        <div v-else>
+                            <el-avatar :size="40"
+                                src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="username" label="姓名" />
+                <el-table-column prop="gender" label="性别">
+                    <template #default="scope">
+                        <div v-if="scope.row.gender !== -1">{{ scope.row.gender == 1 ? '男' : '女' }}</div>
+                        <div v-else>保密</div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="institute" label="学院" />
+                <el-table-column prop="major" label="专业" />
+                <el-table-column prop="classid" label="班级" />
+                <el-table-column label="社团">
+                    <template #default="scope">
+                        <div class="showInfo" @click="showCommunities">查看社团</div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="role" label="权限">
+                    <template #default="scope">
+                        <div v-if="scope.row.role == 9">
+                            <el-tag type="danger">管理员</el-tag>
+                        </div>
+                        <div v-else-if="scope.row.role == 1">
+                            <el-tag type="primary">社长</el-tag>
+                        </div>
+                        <div v-if="scope.row.role == 0">
+                            <el-tag type="info">用户</el-tag>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="130px">
+                    <template #default="scope">
+                        <el-button type="primary" plain round @click="userEdit(scope.row)">编辑</el-button>
+                        <el-popconfirm title="确认删除" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
+                            cancel-button-text="取消" confirm-button-type="danger" @confirm="userDelete(scope.row)">
+                            <template #reference>
+                                <el-button type="danger" circle :icon="Delete"></el-button>
+                            </template>
+                        </el-popconfirm>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <el-pagination v-model:current-page="currentPage" layout="total,prev, pager, next,jumper ,sizes" :total="total"
+                @current-change="pageChange" v-model:page-size="pageSize" :page-sizes="[5, 10, 15, 20]" @size-change="sizeChange" />
         </el-card>
 
         <!-- 修改用户信息模态框 -->
@@ -194,20 +189,28 @@ const genderOptions = [
 // 分页查询
 var total = ref(0)
 var currentPage = ref(1)
+var pageSize = ref(10)
 const pageChange = () => {
     if (Object.values(filterUserForm).every(item => item == "")) {
-        getUserList(currentPage.value)
+        getUserList(currentPage.value,pageSize.value)
     } else {
-        userFilter(filterUserForm, currentPage.value)
+        userFilter(filterUserForm, currentPage.value,pageSize.value)
+    }
+}
+const sizeChange = ()=>{
+    if (Object.values(filterUserForm).every(item => item == "")) {
+        getUserList(currentPage.value,pageSize.value)
+    } else {
+        userFilter(filterUserForm, 1)
     }
 }
 
 // 获取所有用户信息
 onMounted(() => {
-    getUserList(1)
+    getUserList(currentPage.value,pageSize.value)
 })
-const getUserList = async (page) => {
-    await axios.get(`/adminapi/users/userlist/${page}`).then(res => {
+const getUserList = async (page,size) => {
+    await axios.get(`/adminapi/users/userlist/${page}/${size}`).then(res => {
         tableData.value = res.data.data
         total.value = res.data.total
     })
@@ -249,18 +252,19 @@ const filterUserForm = reactive({
     institute: '',
     major: ''
 })
-const userFilter = async (userForm, value) => {
+const userFilter = async (userForm, page,size) => {
     var obj = {}
-    if (!value) {                         // 如果是筛选，查询结果，第一次没有传页数
-        value = 1                       // 给定页数为第一页
-        currentPage.value = 1           // 将当前页改成第一页
-    }
+    if (!page || !size) {              // page为空，说明没有传参，就是筛选按钮调用事件
+        page = 1                       // 查询第一页的内容
+        currentPage.value = 1          // 并且将当前页改为第一页，从第一页开始显示筛选结果
+    }                                  // 如果page不为空说明是当前页改变事件，查询下一页筛选结果
+    size = size ? size : pageSize.value
     for (var i in userForm) {
         if (userForm[i] !== "") {
             obj[i] = userForm[i]
         }
     }
-    await axios.get('/adminapi/users/userlist', {params:{obj,page:value}}).then(res => {
+    await axios.get('/adminapi/users/userlist', { params: { obj, page,size } }).then(res => {
         console.log(res)
         if (res.data.ActionType === 'OK') {
             tableData.value = res.data.data
@@ -276,7 +280,7 @@ const filterRemove = () => {
         filterUserForm[i] = ''
     }
     currentPage.value = 1
-    getUserList(1)
+    getUserList(1,pageSize.value)
 }
 
 // 批量删除
@@ -284,15 +288,23 @@ const multipleTableRef = ref()
 const deleteDialog = ref(false)
 const multipleSelection = ref([])
 const handleSelectionChange = (val) => {
-  multipleSelection.value = val
+    multipleSelection.value = val
+}
+const showDeleteDialog = () => {
+    if (multipleSelection.value.length == 0) {
+        ElMessage.error("您并未选择任何用户！")
+        return
+    } else {
+        deleteDialog.value = true
+    }
 }
 const multipleDelete = async () => {
-    axios.delete('/adminapi/users/userlist',{
-        params:{users:multipleSelection.value}
-    }).then(res=>{
+    axios.delete('/adminapi/users/userlist', {
+        params: { users: multipleSelection.value }
+    }).then(res => {
         ElMessage({
-            message: res.data.ActionType=='OK' ? '批量删除成功' : '删除失败',
-            type: res.data.ActionType=='OK' ? 'success' : 'error'
+            message: res.data.ActionType == 'OK' ? '批量删除成功' : '删除失败',
+            type: res.data.ActionType == 'OK' ? 'success' : 'error'
         })
         deleteDialog.value = false
         currentPage.value = 1
@@ -313,6 +325,8 @@ const multipleDelete = async () => {
 
 .userSearch {
     display: flex;
+    margin: 0;
+    height: 100%;
 
     .el-input {
         margin: 0 10px;
@@ -325,9 +339,12 @@ const multipleDelete = async () => {
 }
 
 .userlist {
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-bottom: 0 !important;
+    margin: 0;
+    border-top: none;
+
+    .el-card__body {
+        padding: 0;
+    }
 }
 
 .el-pagination {

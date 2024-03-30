@@ -1,17 +1,7 @@
 <template>
     <el-header>
         <div class="left">
-            <div @click="handleCollapse">
-                <el-icon v-if="store.isCollapse">
-                    <DArrowRight />
-                </el-icon>
-                <el-icon v-else>
-                    <DArrowLeft />
-                </el-icon>
-            </div>
-
-            <img src="../../assets/SWUSTLOGO.png" title="西南科技大学">
-
+            <img src="../../assets/西科大logo.png" title="西南科技大学">
             <span>西南科技大学社团管理系统</span>
         </div>
         <div class="right">
@@ -55,17 +45,23 @@ function logOut(){
 
 <style scoped>
 .el-header {
+    user-select: none;
     margin: 0;
     padding: 0;
     height: 60px;
-    background-color: rgb(64, 158, 255);
+    /* background:rgb(64,158,255); */
+    background: linear-gradient(90deg, #417dff, #64c7fc);
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
+    position: sticky;
+    z-index: 5;
+    top: 0;
     img{
-        width: 59px;
+        width: 50px;
         border-radius: 50%;
+        margin-left: 10px;
     }
 
     .left {
@@ -74,7 +70,7 @@ function logOut(){
 
         span {
             margin-left: 15px;
-            font-size: 22px;
+            font-size: 20px;
         }
 
         i {

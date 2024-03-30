@@ -10,61 +10,109 @@ const UserServices = {
     updateUser: async ({ userid, username, profile, gender, avatar }) => {
         if (avatar) {
             await promisePool.query(`update tb_users set username=?,profile=?,gender=?,avatar=? where userid=?`, [username, profile, gender, avatar, userid])
-        }else{
+        } else {
             await promisePool.query(`update tb_users set username=?,profile=?,gender=? where userid=?`, [username, profile, gender, userid])
         }
     },
-    changePassword:async ({userid,password,newpassword})=>{
-        var result = await promisePool.query(`update tb_users set password=? where userid=? and password=?`,[newpassword,userid,password])
+    changePassword: async ({ userid, password, newpassword }) => {
+        var result = await promisePool.query(`update tb_users set password=? where userid=? and password=?`, [newpassword, userid, password])
         return result[0]
     },
-    addConfirm:async ({userid})=>{
-        var result = await promisePool.query(`select userid from tb_users where userid=?`,[userid])
+    addConfirm: async ({ userid }) => {
+        var result = await promisePool.query(`select userid from tb_users where userid=?`, [userid])
         return result[0]
     },
-    userAdd:async ({userid,username,gender,institute,major,classid,profile,role,avatar})=>{
-        var result = await promisePool.query(`insert into tb_users(userid,username,gender,institute,major,classid,profile,role,avatar) values(?,?,?,?,?,?,?,?,?)`,[userid,username,gender,institute,major,classid,profile,role,avatar])
+    userAdd: async ({ userid, username, gender, institute, major, classid, profile, role, avatar }) => {
+        var result = await promisePool.query(`insert into tb_users(userid,username,gender,institute,major,classid,profile,role,avatar) values(?,?,?,?,?,?,?,?,?)`, [userid, username, gender, institute, major, classid, profile, role, avatar])
         return result[0]
     },
-    userlistGet:async ({page})=>{
-        var result = await promisePool.query(`select userid,username,gender,profile,avatar,institute,major,classid,communities,role from tb_users limit 10 offset ${(page-1)*10}`)
+    userlistGet: async ({ page, size }) => {
+        var result = await promisePool.query(`select userid,username,gender,profile,avatar,institute,major,classid,role from tb_users limit ${size} offset ${(page - 1) * size}`)
         var count = await promisePool.query(`select count(*) as total from tb_users`)
-        return {data:result[0],total:count[0][0].total}
+        return { data: result[0], total: count[0][0].total }
     },
-    getUser:async ({userid})=>{
-        var result = await promisePool.query(`select * from tb_users where userid=?`,[userid])
+    getUser: async ({ userid }) => {
+        var result = await promisePool.query(`select * from tb_users where userid=?`, [userid])
         return result[0]
     },
-    userDelete:async ({userid})=>{
-        var result = await promisePool.query(`delete from tb_users where userid=?`,[userid])
+    userDelete: async ({ userid }) => {
+        var result = await promisePool.query(`delete from tb_users where userid=?`, [userid])
         return result[0]
     },
-    userUpdate:async({userid,username,gender,institute,major,classid,profile,role,password})=>{
-        var result = await promisePool.query(`update tb_users set username=?,gender=?,institute=?,major=?,classid=?,profile=?,role=?,password=? where userid=?`,[username,gender,institute,major,classid,profile,role,password,userid])
+    userUpdate: async ({ userid, username, gender, institute, major, classid, profile, role, password }) => {
+        var result = await promisePool.query(`update tb_users set username=?,gender=?,institute=?,major=?,classid=?,profile=?,role=?,password=? where userid=?`, [username, gender, institute, major, classid, profile, role, password, userid])
         return result[0]
     },
-    userFilter:async({obj,page})=>{
+    userFilter: async ({ obj, page, size }) => {
         var where = 'where '
-        for(var i in obj){
-            if(typeof obj[i] === 'string'){
+        for (var i in obj) {
+            if (typeof obj[i] === 'string') {
                 where += `${i}='${obj[i]}' and `
-            }else{
+            } else {
                 where += `${i}=${obj[i]} and `
             }
         }
-        where = where.slice(0,-5)
-        var result = await promisePool.query(`select * from tb_users ${where} limit 10 offset ${(page-1)*10}`)
+        where = where.slice(0, -5)
+        var result = await promisePool.query(`select * from tb_users ${where} limit ${size} offset ${(page - 1) * size}`)
         var count = await promisePool.query(`select count(*) as total from tb_users ${where}`)
-        return {data:result[0],total:count[0][0].total}
+        return { data: result[0], total: count[0][0].total }
     },
-    userMultipleDelete:async({users})=>{
+    userMultipleDelete: async ({ users }) => {
         var ids = []
-        for(var i in users){
+        for (var i in users) {
             ids.push(users[i].userid)
         }
         ids = ids.join(',')
-        console.log(ids)
         const result = await promisePool.query(`delete from tb_users where userid in (${ids})`)
+        return result[0]
+    },
+
+    // 系统公告
+    noticeListGet: async () => {
+        const result = await promisePool.query(`SELECT * FROM tb_notices order by notice_time DESC`)
+        for (var i in result[0]) {
+            var date = new Date(result[0][i].notice_time)
+            result[0][i].notice_time = date.toLocaleString()
+        }
+        return result[0]
+    },
+    noticePageGet: async (page) => {
+        const result = await promisePool.query(`SELECT tb_notices.*, tb_users.username FROM tb_notices
+        JOIN tb_users ON tb_notices.creator = tb_users.userid order by notice_time DESC limit 10 offset ${(page - 1) * 10}`)
+        var count = await promisePool.query(`select count(*) as total from tb_notices`)
+        for (var i in result[0]) {
+            var date = new Date(result[0][i].notice_time)
+            result[0][i].notice_time = date.toLocaleString()
+        }
+        return { data: result[0], total: count[0][0].total }
+    },
+    noticeDelete: async (id) => {
+        const result = await promisePool.query(`delete from tb_notices where notice_id=?`, [id])
+        console.log(result[0])
+        return result[0]
+    },
+    noticeMultipleDelete: async (notices) => {
+        var ids = []
+        for (var i in notices) {
+            ids.push(notices[i].notice_id)
+        }
+        ids = ids.join(',')
+        const result = await promisePool.query(`delete from tb_notices where notice_id in (${ids})`)
+        return result[0]
+    },
+    noticeSearch:async ({keyWord,page})=>{
+        const result = await promisePool.query(`SELECT tb_notices.*, tb_users.username FROM tb_notices
+        JOIN tb_users ON tb_notices.creator = tb_users.userid where notice_title like '%${keyWord}%' or notice_content like '%${keyWord}%' order by notice_time DESC limit 10 offset ${(page - 1) * 10}`)
+        var count = await promisePool.query(`select count(*) as total from tb_notices where notice_title like '%${keyWord}%' or notice_content like '%${keyWord}%'`)
+        for (var i in result[0]) {
+            var date = new Date(result[0][i].notice_time)
+            result[0][i].notice_time = date.toLocaleString()
+        }
+        return { data: result[0], total: count[0][0].total }
+    },
+    noticeAdd:async ({ notice_title, notice_content, creator, notice_time})=>{
+        notice_time = notice_time.toLocaleString()
+        const result = await promisePool.query(`insert into tb_notices(notice_title,notice_content,creator,notice_time) values(?,?,?,?)`, [notice_title, notice_content, creator, notice_time])
         return result[0]
     }
 }

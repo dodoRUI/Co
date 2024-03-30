@@ -1,5 +1,5 @@
 <template>
     <div>
-        news
+        我的社团
     </div>
 </template>

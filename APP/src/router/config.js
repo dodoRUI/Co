@@ -1,13 +1,16 @@
 import Home from '../views/home/Home.vue'
 import Center from '../views/center/Center.vue'
-import CommunityAdd from '../views/community/CommunityAdd.vue'
-import CommunityList from '../views/community/CommunityList.vue'
+import ClubAdd from '../views/club/ClubAdd.vue'
+import ClubList from '../views/club/ClubList.vue'
 import NotFound from '../views/NotFound.vue'
 import ActivityAdd from '../views/activity/ActivityAdd.vue'
 import ActivityList from '../views/activity/ActivityList.vue'
 import UserList from '../views/users/UserList.vue'
 import UserAdd from '../views/users/UserAdd.vue'
-import News from '../views/news/News.vue'
+import Notice from '../views/notice/Notice.vue'
+import ClubNews from '../views/club/ClubNews.vue'
+import ClubMembers from '../views/club/ClubMembers.vue'
+import ApplyConfirm from '../views/club/ApplyConfirm.vue'
 
 
 // 需要给mainbox添加的子路由
@@ -21,12 +24,24 @@ const mainboxRoutes = [
         component: Center
     },
     {
-        path:'/community/communityadd',
-        component:CommunityAdd
+        path:'/club/clubadd',
+        component:ClubAdd
     },
     {
-        path:'/community/communitylist',
-        component:CommunityList
+        path:'/club/clubnews',
+        component:ClubNews
+    },
+    {
+        path:'/club/clubmembers',
+        component:ClubMembers
+    },
+    {
+        path:'/club/clublist',
+        component:ClubList
+    },
+    {
+        path:'/club/applyconfirm',
+        component:ApplyConfirm
     },
     {
         path:'/activity/activityadd',
@@ -47,8 +62,8 @@ const mainboxRoutes = [
         requireAdmin: true
     },
     {
-        path:'/news',
-        component:News
+        path:'/notice',
+        component:Notice
     },
     {
         path:'/:pathMatch(.*)*',

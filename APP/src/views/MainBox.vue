@@ -20,6 +20,9 @@
     import SideMenu from '../components/mainbox/SideMenu.vue'
 </script>
 
-<style lang="scss">
-    
+<style lang="scss" scoped>
+  .el-main{
+    padding-bottom: 0;
+    padding-top: 10px;
+  }
 </style>

@@ -1,15 +1,21 @@
 <template>
     <div>
         <el-aside :width="store.isCollapse ? '64px' : '200px'">
-            <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose"
-                :collapse="store.isCollapse" :collapse-transition="false" :router="true" :default-active="route.fullPath">
+            <div class="LOGO" @click="store.isCollapse = !store.isCollapse">
+                <el-icon v-show="store.isCollapse">
+                    <Menu />
+                </el-icon>
+                <span v-show="!store.isCollapse">MENU</span>
+            </div>
+            <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" :collapse="store.isCollapse"
+                :collapse-transition="true" :router="true" :default-active="route.fullPath">
                 <el-menu-item index="/home">
                     <i class="iconfont icon-shouye"></i>
                     <span>系统首页</span>
                 </el-menu-item>
-                <el-menu-item index="/news">
+                <el-menu-item index="/notice">
                     <i class="iconfont icon-gonggaozixunicon-announcementInformation"></i>
-                    <span>公告资讯</span>
+                    <span>公告通知</span>
                 </el-menu-item>
                 <el-menu-item index="/center">
                     <i class="iconfont icon-icon-person-renwu"></i>
@@ -23,13 +29,16 @@
                     <el-menu-item index="/activity/activitylist"><span>活动赛事</span></el-menu-item>
                     <el-menu-item index="/activity/activityadd"><span>创建活动</span></el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="/community">
+                <el-sub-menu index="/club">
                     <template #title>
                         <i class="iconfont icon-shetuan"></i>
                         <span>社团管理</span>
                     </template>
-                    <el-menu-item index="/community/communitylist"><span>所有社团</span></el-menu-item>
-                    <el-menu-item index="/community/communityadd"><span>成立社团</span></el-menu-item>
+                    <el-menu-item index="/club/clublist"><span>所有社团</span></el-menu-item>
+                    <el-menu-item index="/club/clubadd"><span>成立社团</span></el-menu-item>
+                    <el-menu-item index="/club/clubnews"><span>社团资讯</span></el-menu-item>
+                    <el-menu-item index="/club/applyconfirm"><span>申请审批</span></el-menu-item>
+                    <el-menu-item index="/club/clubmembers"><span>我的社团</span></el-menu-item>
                 </el-sub-menu>
                 <el-sub-menu index="/users" v-admin>
                     <template #title>
@@ -47,14 +56,15 @@
 <script setup>
 import { useHomeStore } from '@/stores/home'
 import { useRoute } from 'vue-router';
+import { Menu } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const store = useHomeStore()
 
 // 自定义指令，用于控制菜单显示权限
 const vAdmin = {
-    mounted(el){
-        if(store.userInfo.role !== 9){
+    mounted(el) {
+        if (store.userInfo.role !== 9) {
             el.parentNode.removeChild(el)
         }
     }
@@ -63,50 +73,106 @@ const vAdmin = {
 
 <style lang="scss" scoped>
 .el-aside {
+    user-select: none;
     height: 100vh;
-}
+    transition: all 0.5s ease;
+    position: sticky;
+    top: 0;
 
-.el-sub-menu {
-    padding: 0;
+    .LOGO {
+        position: relative;
+        top: 0;
+        left: 0;
+        z-index: 5;
+        background: linear-gradient(90deg, #417dff, #55e7fc);
+        height: 60px;
+        text-align: center;
+        cursor: pointer;
 
-    span {
-        font-size: 16px;
-        margin-left: 10px;
-    }
-
-    i {
-        font-size: 16px;
-    }
-
-    .el-menu-item {
-        font-size: 16px;
-
-        span {
-            height: 16px;
-            line-height: 16px;
-            margin-left: 15px;
-            padding-left: 5px;
-            border-left: 2px solid #ccc;
+        i {
+            font-size: 30px;
+            color: white;
+            position: absolute;
+            left: 17px;
+            top: 15px;
         }
 
-        &:hover {
+        span {
+            font-size: 40px;
+            color: white;
+            position: absolute;
+            left: 40px;
+            line-height: 60px
+        }
+    }
+
+    .el-menu {
+        transition: all 0.5s ease;
+        height: calc(100vh - 60px);
+        overflow: auto;
+
+        &::-webkit-scrollbar {
+            width: 3px;
+            background-color: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            width:10px;
+            background: linear-gradient(15deg, rgb(64,158,255), #55e7fc);
+            /* 设置滑块颜色 */
+            border-radius: 5px;
+            /* 设置滑块圆角 */
+        }
+
+        .el-menu-item {
             span {
-                border-color: rgb(64, 158, 255);
+                margin-left: 25px
             }
         }
     }
-}
 
-.el-menu-item {
-    padding-left: 20px;
+    .el-sub-menu {
+        padding: 0;
 
-    span {
-        font-size: 16px;
-        margin-left: 10px;
+        span {
+            font-size: 16px;
+            margin-left: 25px;
+        }
+
+        i {
+            font-size: 16px;
+        }
+
+        .el-menu-item {
+            font-size: 16px;
+
+            span {
+                height: 16px;
+                line-height: 16px;
+                margin-left: 15px;
+                padding-left: 5px;
+                border-left: 2px solid #ccc;
+            }
+
+            &:hover {
+                span {
+                    border-color: rgb(64, 158, 255);
+                }
+            }
+        }
     }
 
-    i {
-        font-size: 16px;
+    .el-menu-item {
+        padding-left: 20px;
+
+        span {
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        i {
+            font-size: 16px;
+        }
     }
 }
 </style>

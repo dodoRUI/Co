@@ -91,7 +91,7 @@ const UserController = {
         })
     },
     userlistGet: async (req, res) => {
-        const result = await UserServices.userlistGet({ page: req.params.page })
+        const result = await UserServices.userlistGet({ page: req.params.page, size: req.params.size })
         res.send({
             data: result.data,
             total: result.total,
@@ -118,21 +118,63 @@ const UserController = {
     },
     userFilter: async (req, res) => {
         const result = await UserServices.userFilter(req.query)
-        console.log(result)
-        if (result.total>0) {
+        if (result.total > 0) {
             res.send({
                 data: result.data,
                 total: result.total,
                 ActionType: "OK"
             })
-        }else{
-            res.send({ActionType: "NO"})
+        } else {
+            res.send({ ActionType: "NO" })
         }
     },
-    userMultipleDelete:async (req, res) => {
+    userMultipleDelete: async (req, res) => {
         const result = await UserServices.userMultipleDelete(req.query)
         res.send({
             ActionType: result.affectedRows == req.query.users.length ? "OK" : "Error"
+        })
+    },
+
+    // 系统公告
+    noticeListGet: async (req, res) => {
+        const result = await UserServices.noticeListGet()
+        res.send({
+            data: result,
+            ActionType: "OK"
+        })
+    },
+    noticePageGet: async (req, res) => {
+        const result = await UserServices.noticePageGet(req.params.page)
+        res.send({
+            data: result.data,
+            total: result.total,
+            ActionType: "OK"
+        })
+    },
+    noticeDelete: async (req, res) => {
+        const result = await UserServices.noticeDelete(req.params.id)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+    noticeMultipleDelete: async (req, res) => {
+        const result = await UserServices.noticeMultipleDelete(req.query.notices)
+        res.send({
+            ActionType: result.affectedRows == req.query.notices.length ? "OK" : "Error"
+        })
+    },
+    noticeSearch: async (req, res) => {
+        const result = await UserServices.noticeSearch(req.query)
+        res.send({
+            data: result.data,
+            total: result.total,
+            ActionType: "OK"
+        })
+    },
+    noticeAdd:async (req,res)=>{
+        const result = await UserServices.noticeAdd(req.body)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
     }
 }
