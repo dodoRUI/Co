@@ -1,6 +1,6 @@
 import Home from '../views/home/Home.vue'
 import Center from '../views/center/Center.vue'
-import ClubAdd from '../views/club/ClubAdd.vue'
+import ClubStatistics from '../views/club/ClubStatistics.vue'
 import ClubList from '../views/club/ClubList.vue'
 import NotFound from '../views/NotFound.vue'
 import ActivityAdd from '../views/activity/ActivityAdd.vue'
@@ -24,8 +24,8 @@ const mainboxRoutes = [
         component: Center
     },
     {
-        path:'/club/clubadd',
-        component:ClubAdd
+        path:'/club/clubstatistics',
+        component:ClubStatistics
     },
     {
         path:'/club/clubnews',

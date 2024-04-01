@@ -69,7 +69,7 @@
                         </div>
                     </el-form>
                 </el-card>
-                <div class="card">
+                <div :class="userForm.role==9?['card','admin']:(userForm.gender === 0 ? ['card', 'female'] : ['card', 'male'])">
                     <div class="header">
                         <img :src="userForm.avatar" v-show="userForm.avatar">
                     </div>
@@ -85,7 +85,7 @@
                             </span>
                         </div>
                         <div class="major">
-                            <span v-show="userForm.institute">{{ userForm.institute }}</span>
+                            <span v-show="userForm.gender" :style="userForm.gender === 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{ userForm.institute }}</span>
                             <div v-show="userForm.major">{{ userForm.major }} 丨 {{ userForm.classid }}</div>
                         </div>
                         <div class="profile" v-show="userForm.profile">
@@ -210,18 +210,31 @@ function resetForm() {
 </script>
 
 <style scoped lang="scss">
+.female {
+    background: linear-gradient(45deg, #a58fff, #ff8fcd);
+}
+
+.male {
+    background: linear-gradient(45deg, #6395ff, #8df0ff);
+}
+.admin{
+    background: linear-gradient(to bottom, #000000, #444444);
+}
+
 .warning {
     border: 2px solid red;
     color: red;
     border-radius: 5px;
 }
 
-.el-card{
+.el-card {
     margin: 0;
 }
+
 .cardbody {
     display: flex;
-    :deep(.el-card__body){
+
+    :deep(.el-card__body) {
         padding: 0 0;
     }
 
@@ -243,7 +256,6 @@ function resetForm() {
         overflow: hidden;
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
         // background: linear-gradient(to bottom, #94c6ff, #4583ff);
-        background:linear-gradient(45deg, #6395ff, #8df0ff);
         color: white;
 
         .header {

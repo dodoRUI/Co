@@ -9,7 +9,7 @@
                     <h3 class="name">{{ store.userInfo.username }}</h3>
                     <h5 class="authorization">{{ store.userInfo.role === 9 ? '管理员' : '社长' }}</h5>
                 </el-card>
-                <el-card>
+                <el-card style="border-radius: 20px">
                     <template #header>
                         <div class="card-header">
                             <span style="color: rgb(64, 158, 255); font-size: 16px;">修改密码</span>
@@ -62,7 +62,7 @@
                 </el-card>
             </el-col>
             <el-col :span="16">
-                <el-card>
+                <el-card style="border-radius: 20px">
                     <template #header>
                         <div class="card-header">
                             <span style="color: rgb(64, 158, 255); font-size: 16px;">个人信息</span>

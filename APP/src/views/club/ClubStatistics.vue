@@ -1,5 +1,5 @@
 <template>
     <div>
-        community add
+        社团数据
     </div>
 </template>

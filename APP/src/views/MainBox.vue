@@ -12,17 +12,17 @@
   </div>
 </template>
 
-  
-  
-  
+
+
+
 <script setup>
-    import TopHeader from '../components/mainbox/TopHeader.vue'
-    import SideMenu from '../components/mainbox/SideMenu.vue'
+import TopHeader from '../components/mainbox/TopHeader.vue'
+import SideMenu from '../components/mainbox/SideMenu.vue'
 </script>
 
 <style lang="scss" scoped>
-  .el-main{
-    padding-bottom: 0;
-    padding-top: 10px;
-  }
+.el-main {
+  padding: 10px 20px 0 20px;
+}
+
 </style>

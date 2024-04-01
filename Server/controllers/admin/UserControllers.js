@@ -176,6 +176,52 @@ const UserController = {
         res.send({
             ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
+    },
+
+    // 社团管理
+    clubListGet: async (req, res) => {
+        const result = await UserServices.clubListGet()
+        res.send({
+            data: result,
+            ActionType: "OK"
+        })
+    },
+    clubSearch: async (req, res) => {
+        const result = await UserServices.clubSearch(req.query)
+        res.send({
+            data: result,
+            ActionType: "OK"
+        })
+    },
+    checkMinister: async (req, res) => {
+        const result = await UserServices.checkMinister(req.params.userid)
+        res.send({
+            data:result
+        })
+    },
+    clubAdd:async(req,res)=>{
+        req.body.club_avatar = req.file ? `/clubAvatarUploads/${req.file.filename}` : ""
+        const result = await UserServices.clubAdd(req.body)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+
+    // 删除社团
+    clubDelete:async(req,res)=>{
+        const result = await UserServices.clubDelete(req.query)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+
+
+    // 查看用户加入的社团
+    getUserClubs:async(req,res)=>{
+        const result = await UserServices.getUserClubs(req.params.userid)
+        res.send({
+            data:result
+        })
     }
 }
 

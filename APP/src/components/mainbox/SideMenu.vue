@@ -35,7 +35,7 @@
                         <span>社团管理</span>
                     </template>
                     <el-menu-item index="/club/clublist"><span>所有社团</span></el-menu-item>
-                    <el-menu-item index="/club/clubadd"><span>成立社团</span></el-menu-item>
+                    <el-menu-item index="/club/clubstatistics"><span>社团数据</span></el-menu-item>
                     <el-menu-item index="/club/clubnews"><span>社团资讯</span></el-menu-item>
                     <el-menu-item index="/club/applyconfirm"><span>申请审批</span></el-menu-item>
                     <el-menu-item index="/club/clubmembers"><span>我的社团</span></el-menu-item>

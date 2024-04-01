@@ -21,10 +21,14 @@
         </el-card>
         <el-card class="userlist">
             <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width: 100%"
-                :cell-style="{ padding: '0px' }" :row-style="{ height: '20px' }" ref="multipleTableRef"
+                :cell-style="{ padding: '0px' }" :row-style="{ height: '50px' }" ref="multipleTableRef"
                 @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="30" />
-                <el-table-column prop="userid" label="ID" sortable />
+                <el-table-column prop="userid" label="ID" sortable>
+                    <template #default="scope">
+                        <span class="userid" @click="showPersonalCard(scope.row)">{{ scope.row.userid }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="avatar" label="头像">
                     <template #default="scope">
                         <div v-if="scope.row.avatar">
@@ -48,7 +52,11 @@
                 <el-table-column prop="classid" label="班级" />
                 <el-table-column label="社团">
                     <template #default="scope">
-                        <div class="showInfo" @click="showCommunities">查看社团</div>
+                        <div class="showInfo" @click="showCommunities">
+                            <el-tag effect="plain" round @click="showClub(scope.row)">
+                                查看社团
+                            </el-tag>
+                        </div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="role" label="权限">
@@ -77,8 +85,9 @@
                 </el-table-column>
             </el-table>
 
-            <el-pagination v-model:current-page="currentPage" layout="total,prev, pager, next,jumper ,sizes" :total="total"
-                @current-change="pageChange" v-model:page-size="pageSize" :page-sizes="[5, 10, 15, 20]" @size-change="sizeChange" />
+            <el-pagination v-model:current-page="currentPage" layout="total,prev, pager, next,jumper ,sizes"
+                :total="total" @current-change="pageChange" v-model:page-size="pageSize" :page-sizes="[5, 10, 15, 20]"
+                @size-change="sizeChange" />
         </el-card>
 
         <!-- 修改用户信息模态框 -->
@@ -149,6 +158,44 @@
                 </div>
             </template>
         </el-dialog>
+
+        <el-drawer v-model="drawer" direction="ltr" :with-header="false" class="cardDrawer" :size="540"
+            :destroy-on-close="true">
+            <div
+                :class="userinfo.role == 9 ? ['card', 'admin'] : (userinfo.gender === 0 ? ['card', 'female'] : ['card', 'male'])">
+                <div class="header">
+                    <img
+                        :src="userinfo.avatar ? 'http://localhost:3000' + userinfo.avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'">
+                </div>
+                <div class="center">
+                    <div class="id">ID：{{ userinfo.userid }}</div>
+                    <div class="name">
+                        <span>
+                            <i v-if="userinfo.gender === 1" class="iconfont icon-xingbie_nan"
+                                style="color: rgb(0, 145, 255);"></i>
+                            <i v-if="userinfo.gender === 0" class="iconfont icon-xingbie_nv"
+                                style="color: rgb(255, 77, 148);"></i>
+                            {{ userinfo.username }}
+                        </span>
+                    </div>
+                    <div class="major" v-show="userinfo.institute">
+                        <span
+                            :style="userinfo.gender == 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
+                userinfo.institute }}</span>
+                        <div>{{ userinfo.major }} 丨 {{ userinfo.classid }}</div>
+                    </div>
+                    <div class="profile">
+                        <div class="title">个人简介</div>
+                        <div class="content">
+                            {{ userinfo.profile }}
+                        </div>
+                    </div>
+                </div>
+                <div class="footer">
+                    SWUST COMMUNITY
+                </div>
+            </div>
+        </el-drawer>
     </div>
 </template>
 
@@ -157,7 +204,7 @@ import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios'
 import { Delete, Warning } from '@element-plus/icons-vue'
 import instituteMajor from '@/assets/instituteMajor.js'
-import { ElMessage } from 'element-plus'
+import { ElMessage,ElNotification } from 'element-plus'
 
 const tableData = ref([])
 const dialogVisible = ref(false)
@@ -192,14 +239,14 @@ var currentPage = ref(1)
 var pageSize = ref(10)
 const pageChange = () => {
     if (Object.values(filterUserForm).every(item => item == "")) {
-        getUserList(currentPage.value,pageSize.value)
+        getUserList(currentPage.value, pageSize.value)
     } else {
-        userFilter(filterUserForm, currentPage.value,pageSize.value)
+        userFilter(filterUserForm, currentPage.value, pageSize.value)
     }
 }
-const sizeChange = ()=>{
+const sizeChange = () => {
     if (Object.values(filterUserForm).every(item => item == "")) {
-        getUserList(currentPage.value,pageSize.value)
+        getUserList(currentPage.value, pageSize.value)
     } else {
         userFilter(filterUserForm, 1)
     }
@@ -207,9 +254,9 @@ const sizeChange = ()=>{
 
 // 获取所有用户信息
 onMounted(() => {
-    getUserList(currentPage.value,pageSize.value)
+    getUserList(currentPage.value, pageSize.value)
 })
-const getUserList = async (page,size) => {
+const getUserList = async (page, size) => {
     await axios.get(`/adminapi/users/userlist/${page}/${size}`).then(res => {
         tableData.value = res.data.data
         total.value = res.data.total
@@ -252,7 +299,7 @@ const filterUserForm = reactive({
     institute: '',
     major: ''
 })
-const userFilter = async (userForm, page,size) => {
+const userFilter = async (userForm, page, size) => {
     var obj = {}
     if (!page || !size) {              // page为空，说明没有传参，就是筛选按钮调用事件
         page = 1                       // 查询第一页的内容
@@ -264,7 +311,7 @@ const userFilter = async (userForm, page,size) => {
             obj[i] = userForm[i]
         }
     }
-    await axios.get('/adminapi/users/userlist', { params: { obj, page,size } }).then(res => {
+    await axios.get('/adminapi/users/userlist', { params: { obj, page, size } }).then(res => {
         console.log(res)
         if (res.data.ActionType === 'OK') {
             tableData.value = res.data.data
@@ -280,7 +327,7 @@ const filterRemove = () => {
         filterUserForm[i] = ''
     }
     currentPage.value = 1
-    getUserList(1,pageSize.value)
+    getUserList(1, pageSize.value)
 }
 
 // 批量删除
@@ -311,9 +358,53 @@ const multipleDelete = async () => {
         getUserList(currentPage.value)
     })
 }
+
+// 显示个人卡片
+const drawer = ref(false)
+let userinfo = reactive({})
+const showPersonalCard = (user) => {
+    userinfo = { ...user }
+    drawer.value = true
+}
+
+// 显示用户加入的社团
+const showClub = async (user)=>{
+    await axios.get(`/adminapi/clubmembers/user/${user.userid}`).then(res=>{
+        const clubs = res.data.data
+        const minister = 'color:#626aef'
+        const member = 'color:rgb(64,158,255)'
+        if(clubs.length>0){
+            let str = ``
+            for(var i in clubs){
+                str += `<div style="width:260px;display:flex;justify-content:space-between;">
+                    <strong style="${clubs[i].user_role==1?minister:member}">
+                        ${clubs[i].club_name}
+                    </strong>
+                    <span>${clubs[i].join_time}</span>
+                </div>`
+            }
+            ElNotification.success({
+                title: `${user.username}`,
+                dangerouslyUseHTMLString: true,
+                message: str,
+                duration: 5000,
+            })
+        }else{
+            ElNotification.error({
+                title: `${user.username}`,
+                message: '该用户未加入任何社团',
+                duration: 5000,
+            })
+        }
+    })
+}
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.el-pagination {
+    height: 40px;
+}
+
 .showInfo {
     color: rgb(170, 170, 170);
     cursor: pointer;
@@ -327,6 +418,7 @@ const multipleDelete = async () => {
     display: flex;
     margin: 0;
     height: 100%;
+    background: linear-gradient(-45deg, rgba(64, 158, 255, 0.2), rgba(85, 231, 252, 0.2));
 
     .el-input {
         margin: 0 10px;
@@ -342,12 +434,179 @@ const multipleDelete = async () => {
     margin: 0;
     border-top: none;
 
+    .userid {
+        font-weight: bold;
+        user-select: none;
+        cursor: pointer;
+
+        &:hover {
+            color: rgb(64, 158, 255);
+            border-bottom: 2px solid rgb(64, 158, 255);
+        }
+    }
+
     .el-card__body {
-        padding: 0;
+        padding: 20px 0 0 20px;
+    }
+
+    .el-table {
+        height: 540px;
+        overflow-y: scroll;
+
+        thead tr th {
+            text-align: center;
+        }
+
+        tbody tr td {
+            text-align: center;
+        }
     }
 }
 
-.el-pagination {
-    height: 40px;
+.female {
+    background: linear-gradient(45deg, #a58fff, #ff8fcd);
+}
+
+.male {
+    background: linear-gradient(45deg, #6395ff, #8df0ff);
+}
+
+.admin {
+    background: linear-gradient(to bottom, #000000, #444444);
+}
+
+.cardDrawer {
+    background-color: transparent !important;
+    box-shadow: none !important;
+
+    .el-drawer__body {
+        background: transparent;
+        padding: 45px 20px;
+
+        .card {
+            user-select: none;
+            width: 500px;
+            height: 650px;
+            box-sizing: border-box;
+            padding: 20px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
+            // background: linear-gradient(to bottom, #94c6ff, #4583ff);
+            // background: linear-gradient(45deg, #6395ff, #8df0ff);
+            color: white;
+
+            .header {
+                width: 100%;
+                text-align: center;
+
+                /* background-color: red; */
+                img {
+                    width: 200px;
+                    height: 200px;
+                    border: 2px solid white;
+                    border-radius: 100px;
+                }
+            }
+
+            .center {
+
+                /* background-color: red; */
+                .id {
+                    text-align: center;
+                    font-size: 14px;
+                    font-weight: 100;
+                }
+
+                .name {
+                    margin-top: 10px;
+                    text-align: center;
+
+                    span {
+                        padding: 0;
+                        font-size: 35px;
+                        line-height: 35px;
+                        text-align: center;
+                        font-weight: 600;
+                        position: relative;
+
+                        i {
+                            margin: 0;
+                            position: absolute;
+                            top: 10px;
+                            left: -35px;
+                            font-size: 25px;
+                        }
+                    }
+                }
+
+                .major {
+                    padding: 0;
+                    margin-top: 15px;
+                    text-align: center;
+                    font-size: 20px;
+                    line-height: 20px;
+
+                    /* background-color: red; */
+                    span {
+                        padding: 2px;
+                        font-weight: 500;
+                        font-size: 14px;
+                        line-height: 20px;
+                        background-color: white;
+                        border-radius: 5px;
+                        color: rgb(118, 189, 255);
+                    }
+
+                    div {
+                        margin-top: 10px;
+                    }
+                }
+
+                .profile {
+                    margin-top: 40px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .title {
+                        width: 80%;
+                        text-align: center;
+                        color: rgba(255, 255, 255, 0.7);
+                        padding-bottom: 5px;
+                        border-bottom: 1px solid white;
+                    }
+
+                    .content {
+                        /* background-color: red; */
+                        width: 80%;
+                        height: 160px;
+                        margin-top: 10px;
+                        color: rgba(255, 255, 255, 0.7);
+                        text-indent: 2rem;
+                        overflow: auto;
+
+                        /* 自定义滚动条样式 */
+                        scrollbar-width: thin;
+                        scrollbar-color: rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0);
+                    }
+                }
+            }
+
+            .footer {
+                /* background-color: red; */
+                padding: 0;
+                margin: 0;
+                text-align: center;
+                font-size: 42px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.1);
+                position: absolute;
+                bottom: 0;
+            }
+
+        }
+    }
 }
 </style>

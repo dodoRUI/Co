@@ -18,38 +18,36 @@
             </div>
         </el-card>
         <el-card class="noticeList">
-            <el-scrollbar height="440px">
-                <el-table :data="tableData" style="width: 100%" ref="multipleTableRef"
-                    @selection-change="handleSelectionChange">
-                    <el-table-column type="selection" width="30" />
-                    <el-table-column prop="notice_id" label="序号" width="80" sortable>
-                    </el-table-column>
-                    <el-table-column prop="notice_title" label="标题">
-                        <template #default="scope">
-                            <div v-html="highLightKeyWords(scope.row.notice_title)"></div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="notice_content" label="内容">
-                        <template #default="scope">
-                            <div v-html="highLightKeyWords(scope.row.notice_content)"></div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="notice_time" label="创建时间">
-                    </el-table-column>
-                    <el-table-column prop="username" label="创建人">
-                    </el-table-column>
-                    <el-table-column label="操作">
-                        <template #default="scope">
-                            <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
-                                cancel-button-text="取消" confirm-button-type="danger" @confirm="noticeDelete(scope.row)">
-                                <template #reference>
-                                    <el-button type="danger" round :icon="Delete">删除</el-button>
-                                </template>
-                            </el-popconfirm>
-                        </template>
-                    </el-table-column>
-                </el-table>
-            </el-scrollbar>
+            <el-table :data="tableData" style="width: 100%" ref="multipleTableRef"
+                @selection-change="handleSelectionChange">
+                <el-table-column type="selection" width="30" />
+                <el-table-column prop="notice_id" label="序号" width="80" sortable>
+                </el-table-column>
+                <el-table-column prop="notice_title" label="标题">
+                    <template #default="scope">
+                        <div v-html="highLightKeyWords(scope.row.notice_title)"></div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="notice_content" label="内容">
+                    <template #default="scope">
+                        <div v-html="highLightKeyWords(scope.row.notice_content)"></div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="notice_time" label="创建时间">
+                </el-table-column>
+                <el-table-column prop="username" label="创建人">
+                </el-table-column>
+                <el-table-column label="操作">
+                    <template #default="scope">
+                        <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
+                            cancel-button-text="取消" confirm-button-type="danger" @confirm="noticeDelete(scope.row)">
+                            <template #reference>
+                                <el-button type="danger" round :icon="Delete">删除</el-button>
+                            </template>
+                        </el-popconfirm>
+                    </template>
+                </el-table-column>
+            </el-table>
             <el-pagination v-model:current-page="currentPage" layout="total,prev, pager, next" :total="total"
                 @current-change="pageChange" />
         </el-card>
@@ -71,7 +69,7 @@
         <el-dialog v-model="addDialog" title="新增通知" width="500" :before-close="handleClose">
             <el-form :model="noticeForm" label-width="auto" style="max-width: 600px" :rules="noticeRules" status-icon>
                 <el-form-item label="创建人" prop="creator">
-                    <el-input :value="noticeForm.creator" :prefix-icon="UserFilled" disabled/>
+                    <el-input :value="noticeForm.creator" :prefix-icon="UserFilled" disabled />
                 </el-form-item>
                 <el-form-item label="标题" prop="notice_title">
                     <el-input v-model="noticeForm.notice_title" maxlength="20" placeholder="请输入标题" show-word-limit
@@ -79,7 +77,7 @@
                 </el-form-item>
                 <el-form-item label="内容" prop="notice_content">
                     <el-input v-model="noticeForm.notice_content" type="textarea" placeholder="请输入内容" maxlength="100"
-                        show-word-limit :rows="10" class="content" />
+                        show-word-limit :rows="10" class="content" resize="none" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -99,6 +97,7 @@ import axios from 'axios'
 import { Delete, Warning, Search, Plus, Collection, UserFilled } from '@element-plus/icons-vue'
 import { onMounted, ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
+import getDateTime from '@/utils/getDateTime'
 import { useHomeStore } from '@/stores/home'
 const store = useHomeStore()
 
@@ -119,7 +118,7 @@ onMounted(() => {
     getNoticeList(1)
 })
 const getNoticeList = async (page) => {
-    await axios.get(`/adminapi/noticelist/page/${page}`).then(res => {
+    await axios.get(`/adminapi/notices/noticelist/page/${page}`).then(res => {
         tableData.value = res.data.data
         total.value = res.data.total
     })
@@ -127,7 +126,7 @@ const getNoticeList = async (page) => {
 
 // 删除公告
 const noticeDelete = (notice) => {
-    axios.delete(`/adminapi/noticelist/${notice.notice_id}`).then(res => {
+    axios.delete(`/adminapi/notices/deletenotice/${notice.notice_id}`).then(res => {
         if (res.data.ActionType == "OK") {
             ElMessage.success("删除成功！")
         } else {
@@ -153,7 +152,7 @@ const showDeleteDialog = () => {
     }
 }
 const multipleDelete = async () => {
-    axios.delete('/adminapi/noticelist', {
+    axios.delete('/adminapi/notices/deletenotices', {
         params: { notices: multipleSelection.value }
     }).then(res => {
         ElMessage({
@@ -169,7 +168,7 @@ const multipleDelete = async () => {
 // 关键字查询
 const keyWord = ref('')
 const handleSearch = (page) => {
-    axios.get(`/adminapi/noticelist/search`, { params: { keyWord: keyWord.value, page: page } }).then(res => {
+    axios.get(`/adminapi/notices/noticelist/search`, { params: { keyWord: keyWord.value, page: page } }).then(res => {
         if (res.data.data) {
             tableData.value = res.data.data
             total.value = res.data.total
@@ -204,9 +203,8 @@ const noticeRules = reactive({
 
 const noticeAdd = (noticeForm) => {
     if (noticeForm.notice_title && noticeForm.notice_content) {
-        var datetime = new Date()
-        noticeForm.notice_time = datetime.toLocaleString()
-        axios.post('/adminapi/noticelist', noticeForm).then(res => {
+        noticeForm.notice_time = getDateTime.dateTime()
+        axios.post('/adminapi/notices/addnotice', noticeForm).then(res => {
             if (res.data.ActionType == "OK") {
                 ElMessage.success("添加成功！")
             } else {
@@ -220,14 +218,28 @@ const noticeAdd = (noticeForm) => {
 }
 </script>
 
-<style scoped lang='scss'>
+<style lang='scss' scoped>
 :deep(.highLight) {
     color: rgb(64, 158, 255);
     font-weight: bold;
 }
 
+.noticeList {
+    margin: 0;
+
+    .el-card__body {
+        padding: 20px 0 0 20px;
+    }
+
+    .el-table {
+        height: 440px;
+        overflow-y: scroll;
+    }
+}
+
 .noticePannel {
     margin-bottom: 0;
+    margin-top: 10px;
 
     .search {
         .el-button {
@@ -238,9 +250,5 @@ const noticeAdd = (noticeForm) => {
     .add {
         margin-top: 10px;
     }
-}
-
-.noticeList {
-    margin: 0;
 }
 </style>

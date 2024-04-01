@@ -1,13 +1,13 @@
 import axios from 'axios'
 
 // 封装的文件上传axios请求
-function upload(path, userForm) {
+function upload(path, Form) {
     const params = new FormData()
-    console.log(userForm)
-    for (let i in userForm) {
-        params.append(i, userForm[i])
+    // console.log(Form)
+    for (let i in Form) {
+        params.append(i, Form[i])
     }
-    console.log(params)
+    // console.log(params)
 
     return axios.post(path, params, {
         headers: {
