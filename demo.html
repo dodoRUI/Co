@@ -1,24 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
     <style>
-        div{
+        div {
             background-color: red;
         }
-        img{
+
+        img {
             width: 300px;
             height: 300px;
             border-radius: 50%;
         }
     </style>
 </head>
+
 <body>
-    <div>
-        <img src="./创新联合.jpg" alt="">
-    </div>
+    <script>
+        var list = []
+        for(var i=0;i<3;i++){
+            list[i] = function(){
+                console.log(i)
+            }
+        }
+
+        for(var i=0;i<3;i++){
+            list[i]()
+        }
+
+    </script>
 </body>
+
 </html>

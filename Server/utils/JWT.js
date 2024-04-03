@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken")
 const secret = "any secret key"
 
+// 生成验证token
+
 const JWT = {
     generate(value,expires){
         return jwt.sign(value,secret,{expiresIn:expires})

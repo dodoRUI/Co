@@ -5,9 +5,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var JWT = require('./utils/JWT')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 const userRouter = require('./routes/admin/userRouter');
+const noticeRouter = require('./routes/admin/noticeRouter');
+const clubRouter = require('./routes/admin/clubRouter');
+const activityRouter = require('./routes/admin/activityRouter');
 
 var app = express();
 
@@ -20,9 +21,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 // token刷新
 app.use((req, res, next) => {
@@ -54,6 +52,9 @@ app.use((req, res, next) => {
 })
 
 app.use(userRouter)
+app.use(noticeRouter)
+app.use(clubRouter)
+app.use(activityRouter)
 
 
 // catch 404 and forward to error handler

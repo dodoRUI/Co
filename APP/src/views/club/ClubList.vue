@@ -279,7 +279,7 @@ const showMinister = async (userid) => {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .filterPannel {
     margin-top: 10px;
     background: linear-gradient(-45deg, rgba(64, 158, 255, 0.2), rgba(85, 231, 252, 0.2));
@@ -304,7 +304,7 @@ const showMinister = async (userid) => {
     margin: 0 0;
 
     .el-table {
-        height: 548px;
+        height: 520px;
         overflow-y: scroll;
 
         thead tr th {

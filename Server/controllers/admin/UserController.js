@@ -1,10 +1,10 @@
-const UserServices = require('../../services/admin/UserServices')
+const UserService = require('../../services/admin/UserServices')
 const JWT = require('../../utils/JWT')
 
 const UserController = {
+    // 登录验证
     login: async (req, res) => {
-        // 调用service，连接数据库
-        var result = await UserServices.login(req.body)
+        var result = await UserService.login(req.body)
         if (result.length === 0) {
             res.send({
                 ok: 0,
@@ -31,11 +31,11 @@ const UserController = {
             })
         }
     },
-
+    // 修改个人信息
     upload: async (req, res) => {
         const { userid, username, profile, gender } = req.body
         const avatar = req.file ? `/avatarUploads/${req.file.filename}` : ""
-        await UserServices.updateUser({ userid, username, profile, gender: Number(gender), avatar })
+        await UserService.updateUser({ userid, username, profile, gender: Number(gender), avatar })
         if (avatar) {
             res.send({
                 "ActionType": "OK",
@@ -56,10 +56,10 @@ const UserController = {
                 }
             })
         }
-
     },
+    // 修改用户密码
     changePassword: async (req, res) => {
-        var result = await UserServices.changepassword(req.body)
+        var result = await UserService.changepassword(req.body)
         if (result.affectedRows === 0) {
             res.send({
                 ActionType: "Error"
@@ -70,8 +70,9 @@ const UserController = {
             })
         }
     },
+    // 添加用户前，查看用户ID是否已被占用
     addConfirm: async (req, res) => {
-        var result = await UserServices.addConfirm(req.body)
+        var result = await UserService.addConfirm(req.body)
         if (result.length === 0) {
             res.send({
                 ActionType: "OK"
@@ -82,42 +83,48 @@ const UserController = {
             })
         }
     },
+    // 添加用户
     userAdd: async (req, res) => {
         const { userid, username, gender, institute, major, classid, profile, role } = req.body
         const avatar = req.file ? `/avatarUploads/${req.file.filename}` : ""
-        var result = await UserServices.userAdd({ userid, username, gender, institute, major, classid, profile, role, avatar })
+        var result = await UserService.userAdd({ userid, username, gender, institute, major, classid, profile, role, avatar })
         res.send({
             ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
     },
+    // 获取全部用户，且分页查询
     userlistGet: async (req, res) => {
-        const result = await UserServices.userlistGet({ page: req.params.page, size: req.params.size })
+        const result = await UserService.userlistGet({ page: req.params.page, size: req.params.size })
         res.send({
             data: result.data,
             total: result.total,
             ActionType: "OK"
         })
     },
+    // 获取用户信息
     getUser: async (req, res) => {
-        const result = await UserServices.getUser(req.body)
+        const result = await UserService.getUser(req.body)
         res.send({
             data: result
         })
     },
+    // 删除用户
     userDelete: async (req, res) => {
-        const result = await UserServices.userDelete({ userid: req.params.userid })
+        const result = await UserService.userDelete({ userid: req.params.userid })
         res.send({
             ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
     },
+    // 编辑更新用户信息（修改用户列表中的用户）
     userUpdate: async (req, res) => {
-        const result = await UserServices.userUpdate(req.body)
+        const result = await UserService.userUpdate(req.body)
         res.send({
             ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
     },
+    // 筛选用户，条件搜索
     userFilter: async (req, res) => {
-        const result = await UserServices.userFilter(req.query)
+        const result = await UserService.userFilter(req.query)
         if (result.total > 0) {
             res.send({
                 data: result.data,
@@ -128,101 +135,20 @@ const UserController = {
             res.send({ ActionType: "NO" })
         }
     },
+    // 用户批量删除
     userMultipleDelete: async (req, res) => {
-        const result = await UserServices.userMultipleDelete(req.query)
+        const result = await UserService.userMultipleDelete(req.query)
         res.send({
             ActionType: result.affectedRows == req.query.users.length ? "OK" : "Error"
         })
     },
-
-    // 系统公告
-    noticeListGet: async (req, res) => {
-        const result = await UserServices.noticeListGet()
-        res.send({
-            data: result,
-            ActionType: "OK"
-        })
-    },
-    noticePageGet: async (req, res) => {
-        const result = await UserServices.noticePageGet(req.params.page)
-        res.send({
-            data: result.data,
-            total: result.total,
-            ActionType: "OK"
-        })
-    },
-    noticeDelete: async (req, res) => {
-        const result = await UserServices.noticeDelete(req.params.id)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
-    },
-    noticeMultipleDelete: async (req, res) => {
-        const result = await UserServices.noticeMultipleDelete(req.query.notices)
-        res.send({
-            ActionType: result.affectedRows == req.query.notices.length ? "OK" : "Error"
-        })
-    },
-    noticeSearch: async (req, res) => {
-        const result = await UserServices.noticeSearch(req.query)
-        res.send({
-            data: result.data,
-            total: result.total,
-            ActionType: "OK"
-        })
-    },
-    noticeAdd:async (req,res)=>{
-        const result = await UserServices.noticeAdd(req.body)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
-    },
-
-    // 社团管理
-    clubListGet: async (req, res) => {
-        const result = await UserServices.clubListGet()
-        res.send({
-            data: result,
-            ActionType: "OK"
-        })
-    },
-    clubSearch: async (req, res) => {
-        const result = await UserServices.clubSearch(req.query)
-        res.send({
-            data: result,
-            ActionType: "OK"
-        })
-    },
-    checkMinister: async (req, res) => {
-        const result = await UserServices.checkMinister(req.params.userid)
-        res.send({
-            data:result
-        })
-    },
-    clubAdd:async(req,res)=>{
-        req.body.club_avatar = req.file ? `/clubAvatarUploads/${req.file.filename}` : ""
-        const result = await UserServices.clubAdd(req.body)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
-    },
-
-    // 删除社团
-    clubDelete:async(req,res)=>{
-        const result = await UserServices.clubDelete(req.query)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
-    },
-
-
-    // 查看用户加入的社团
+    // 查看某个用户加入的社团
     getUserClubs:async(req,res)=>{
         const result = await UserServices.getUserClubs(req.params.userid)
         res.send({
             data:result
         })
-    }
+    },
 }
 
 module.exports = UserController
