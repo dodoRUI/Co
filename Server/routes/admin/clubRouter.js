@@ -17,4 +17,27 @@ clubRouter.post("/adminapi/clubs/addclub",clubUpload.single('file'),ClubControll
 // 删除社团
 clubRouter.delete("/adminapi/clubs/deleteclub",ClubController.clubDelete)
 
+// 数据展示
+// 获取所有社团相关数据
+clubRouter.get("/adminapi/clubs/statistics",ClubController.getClubsData)
+// 获取所有社团成员相关数据
+clubRouter.get("/adminapi/clubs/statistics/members",ClubController.clubsMembersGet)
+// 获取所有社团活动数据
+clubRouter.get("/adminapi/clubs/statistics/actvts",ClubController.clubsActvtsGet)
+// 获取所有社团点赞数据
+clubRouter.get("/adminapi/clubs/statistics/stars",ClubController.clubStarsGet)
+
+// 社团详细信息
+clubRouter.get("/adminapi/clubs/clubinfo/:club_id",ClubController.clubInfoGet)
+// 移除社团中的社员
+clubRouter.delete("/adminapi/clubs/deletemember/:clubid/:userid",ClubController.memberDelete)
+// 修改社团社长
+clubRouter.put("/adminapi/clubs/changeminister",ClubController.ministerChange)
+// 修改社团信息
+clubRouter.post("/adminapi/clubs/clubinfo/update",clubUpload.single('file'),ClubController.clubUpdate)
+
+
+// 申请审批
+clubRouter.get("/adminapi/clubs/applications",ClubController.clubApplyGet)
+
 module.exports = clubRouter

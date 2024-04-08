@@ -9,7 +9,7 @@
 
 <script setup>
 import '@wangeditor/editor/dist/css/style.css'
-import { onBeforeUnmount, ref, shallowRef, onMounted, defineEmits } from 'vue'
+import { onBeforeUnmount, ref, shallowRef, onMounted, defineEmits, defineProps,watch } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 
 // 用于子传父
@@ -20,19 +20,31 @@ const editorRef = shallowRef()
 // 内容 HTML
 const valueHtml = ref('')
 
+// 监听是否清除内容属性
+const props = defineProps({
+    clear: Boolean
+})
+watch(() => props.clear, (newValue, oldValue) => {
+    if(newValue){
+        valueHtml.value = ''
+    }
+})
+
+
 // 模拟 ajax 异步获取内容
 onMounted(() => {
-    
+
 })
 
 const toolbarConfig = {}
 const editorConfig = {}
 editorConfig.placeholder = '请输入内容'
 
-const handleChange = (editor)=>{
+const handleChange = () => {
     // 当编辑器内容变化时，更新到父组件中
-    emit('text', editor.getHtml())
+    emit('text', valueHtml.value)
 }
+
 
 
 

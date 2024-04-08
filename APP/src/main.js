@@ -7,6 +7,8 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import '@/utils/axios.config.js'
 import {useHomeStore} from '@/stores/home'
+import ECharts from 'vue-echarts'
+import 'echarts'
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -17,5 +19,5 @@ app.use(router)
 app.use(ElementPlus)
 
 const store = useHomeStore()
-
+app.component('ECharts',ECharts)
 app.mount('#app')

@@ -47,6 +47,13 @@ const NoticeController = {
         res.send({
             ActionType: result.affectedRows == 1 ? "OK" : "Error"
         })
+    },
+    // 修改通知
+    noticeUpdate:async (req,res)=>{
+        const result = await NoticeService.noticeUpdate(req.body)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
     }
 }
 

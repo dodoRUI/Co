@@ -3,7 +3,7 @@
         <el-page-header icon="" title="社团管理系统" content="公告通知"></el-page-header>
         <el-card class="noticePannel">
             <div class="search">
-                <el-input v-model="keyWord" style="width: 240px" placeholder="输入关键字查询" />
+                <el-input v-model="keyWord" style="width: 240px" placeholder="输入关键字查询" :prefix-icon="Search" />
                 <el-button type="primary" round :icon="Search" @click="handleSearch(1)">查询</el-button>
                 <el-button type="default" plain round @click="() => { keyWord = ''; getNoticeList(1) }">重置</el-button>
             </div>
@@ -33,12 +33,13 @@
                         <div v-html="highLightKeyWords(scope.row.notice_content)"></div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="notice_time" label="创建时间">
+                <el-table-column prop="notice_time" label="编辑时间">
                 </el-table-column>
                 <el-table-column prop="username" label="创建人">
                 </el-table-column>
                 <el-table-column label="操作">
                     <template #default="scope">
+                        <el-button type="primary" round plain :icon="Edit" @click="editNotice(scope.row)">编辑</el-button>
                         <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
                             cancel-button-text="取消" confirm-button-type="danger" @confirm="noticeDelete(scope.row)">
                             <template #reference>
@@ -89,14 +90,40 @@
                 </div>
             </template>
         </el-dialog>
+
+        <!-- 编辑模态框 -->
+        <el-dialog v-model="editDialog" title="修改通知" width="500">
+            <el-form :model="editNoticeForm" label-width="auto" style="max-width: 600px" :rules="noticeRules"
+                status-icon>
+                <el-form-item label="创建人" prop="creator">
+                    <el-input :value="editNoticeForm.creator" :prefix-icon="UserFilled" disabled />
+                </el-form-item>
+                <el-form-item label="标题" prop="notice_title">
+                    <el-input v-model="editNoticeForm.notice_title" maxlength="20" placeholder="请输入标题" show-word-limit
+                        clearable :prefix-icon="Collection" />
+                </el-form-item>
+                <el-form-item label="内容" prop="notice_content">
+                    <el-input v-model="editNoticeForm.notice_content" type="textarea" placeholder="请输入内容"
+                        maxlength="100" show-word-limit :rows="10" class="content" resize="none" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="addDialog = false">取消</el-button>
+                    <el-button type="primary" @click="noticeUpdate(editNoticeForm)">
+                        修改
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup>
 import axios from 'axios'
-import { Delete, Warning, Search, Plus, Collection, UserFilled } from '@element-plus/icons-vue'
+import { Delete, Warning, Search, Plus, Collection, UserFilled, Edit } from '@element-plus/icons-vue'
 import { onMounted, ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 import getDateTime from '@/utils/getDateTime'
 import { useHomeStore } from '@/stores/home'
 const store = useHomeStore()
@@ -216,6 +243,27 @@ const noticeAdd = (noticeForm) => {
         })
     }
 }
+
+// 修改通知
+const editDialog = ref(false)
+const editNoticeForm = reactive({})
+const editNotice = (form) => {
+    editDialog.value = true
+    for (var i in form) {
+        editNoticeForm[i] = form[i]
+    }
+}
+const noticeUpdate = async () => {
+    editNoticeForm.notice_time = getDateTime.dateTime()
+    let res = await axios.put('/adminapi/notices/updatenotice', editNoticeForm)
+    ElNotification({
+        title: res.data.ActionType == 'OK' ? '修改成功！' : '修改失败！',
+        message: res.data.ActionType == 'OK' ? '公告通知修改成功' : '服务器出错，修改失败',
+        type: res.data.ActionType == 'OK' ? 'success' : 'error'
+    })
+    editDialog.value = false
+    getNoticeList(currentPage.value)
+}
 </script>
 
 <style lang='scss' scoped>
@@ -234,12 +282,21 @@ const noticeAdd = (noticeForm) => {
     .el-table {
         height: 440px;
         overflow-y: scroll;
+
+        thead tr th {
+            text-align: center;
+        }
+
+        tbody tr td {
+            text-align: center;
+        }
     }
 }
 
 .noticePannel {
     margin-bottom: 0;
     margin-top: 10px;
+    background: linear-gradient(-45deg, rgba(64, 158, 255, 0.2), rgba(85, 231, 252, 0.2));
 
     .search {
         .el-button {

@@ -7,6 +7,10 @@ const UserService = {
     // 登录验证
     login: async ({ userid, password }) => {
         var user = await promisePool.query(`select * from tb_users where userid=? and password=?`, [userid, password])
+        if(user[0][0]&&user[0][0].role==1){
+            const clubid = await promisePool.query(`select club_id from tb_clubs where club_minister=?`, [userid])
+            user[0][0].club_id = clubid[0][0].club_id
+        }
         return user[0]
     },
     // 修改个人信息

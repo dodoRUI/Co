@@ -9,7 +9,7 @@ import UserList from '../views/users/UserList.vue'
 import UserAdd from '../views/users/UserAdd.vue'
 import Notice from '../views/notice/Notice.vue'
 import ClubNews from '../views/club/ClubNews.vue'
-import ClubMembers from '../views/club/ClubMembers.vue'
+import ClubInfo from '../views/club/ClubInfo.vue'
 import ApplyConfirm from '../views/club/ApplyConfirm.vue'
 
 
@@ -25,19 +25,21 @@ const mainboxRoutes = [
     },
     {
         path:'/club/clubstatistics',
-        component:ClubStatistics
+        component:ClubStatistics,
+        requireAdmin: true
     },
     {
         path:'/club/clubnews',
         component:ClubNews
     },
     {
-        path:'/club/clubmembers',
-        component:ClubMembers
+        path:'/club/clubinfo',
+        component:ClubInfo
     },
     {
         path:'/club/clublist',
-        component:ClubList
+        component:ClubList,
+        requireAdmin: true
     },
     {
         path:'/club/applyconfirm',
@@ -63,7 +65,8 @@ const mainboxRoutes = [
     },
     {
         path:'/notice',
-        component:Notice
+        component:Notice,
+        requireAdmin: true
     },
     {
         path:'/:pathMatch(.*)*',

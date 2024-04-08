@@ -16,16 +16,19 @@
             </div>
         </el-card>
         <el-card class="clublist">
-            <el-table :data="tableData" style="width: 100%" ref="multipleTableRef" stripe>
+            <el-table :data="tableData" style="width: 100%" ref="multipleTableRef" stripe v-loading="loading">
                 <el-table-column prop="club_id" label="社团ID" sortable width="100">
                 </el-table-column>
                 <el-table-column prop="club_avatar" label="社团头像">
                     <template #default="scope">
                         <el-avatar :size="50"
-                            :src="scope.row.club_avatar ? 'http://localhost:3000' + scope.row.club_avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'" />
+                            :src="scope.row.club_avatar ? 'http://localhost:3000' + scope.row.club_avatar : 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png'" />
                     </template>
                 </el-table-column>
                 <el-table-column prop="club_name" label="社团名称" width="180">
+                    <template #default="scope">
+                        <span class="clubname" @click="gotoClub(scope.row.club_id)">{{ scope.row.club_name }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column prop="club_birth" label="成立时间">
                 </el-table-column>
@@ -46,7 +49,7 @@
                 </el-table-column>
                 <el-table-column label="操作" width="200">
                     <template #default="scope">
-                        <el-button type="primary" plain round @click="userEdit(scope.row)" :icon="List">详情</el-button>
+                        <el-button type="primary" plain round @click="gotoClub(scope.row.club_id)" :icon="List">详情</el-button>
                         <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
                             cancel-button-text="取消" confirm-button-type="danger" @confirm="clubDelete(scope.row)">
                             <template #reference>
@@ -146,20 +149,25 @@ import { ElMessage, ElNotification } from 'element-plus'
 import axios from 'axios'
 import upload from '@/utils/upload.js'
 import getDateTime from '@/utils/getDateTime.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const belongs = ref(['材料科学与工程学院', '法学院', '国防科技学院', '环境与资源学院', '计算机科学与技术学院', '经济管理学院',
     '理学院', '马克思主义学院', '生命科学与工程学院', '体育学科部', '土木工程与建筑学院', '外国语学院', '文学与艺术学院', '信息工程学院', '制造科学与工程学院'])
 
 
 // 获取数据
+const loading = ref(false)
 const tableData = ref([])
 onMounted(() => {
     getClubList()
 })
-const getClubList = () => {
-    axios.get('/adminapi/clubs/clublist').then(res => {
-        tableData.value = res.data.data
-    })
+const getClubList = async () => {
+    loading.value = true
+    const res = await axios.get('/adminapi/clubs/clublist')
+    tableData.value = res.data.data
+    loading.value = false
 }
 
 // 筛选
@@ -277,6 +285,11 @@ const showMinister = async (userid) => {
         ministerForm = { ...res.data.data[0] }
     })
 }
+
+// 跳转社团详情页面
+const gotoClub = (id)=>{
+    router.push({path:'/club/clubinfo',query:{club_id:id}})
+}
 </script>
 
 <style lang="scss" scoped>
@@ -302,6 +315,14 @@ const showMinister = async (userid) => {
 
 .clublist {
     margin: 0 0;
+    .clubname{
+        font-weight: bold;
+        cursor: pointer;
+        &:hover{
+            color: rgb(64,158,255);
+            border-bottom: 2px solid rgb(64,158,255);
+        }
+    }
 
     .el-table {
         height: 520px;

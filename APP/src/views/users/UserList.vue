@@ -2,11 +2,16 @@
     <div>
         <!-- <el-page-header icon="" title="用户管理" content="用户列表"></el-page-header> -->
         <el-card class="userSearch">
-            <el-button type="danger" @click="showDeleteDialog">批量删除</el-button>
-            <el-input v-model="filterUserForm.userid" style="width: 150px" placeholder="用户ID" />
-            <el-input v-model="filterUserForm.username" style="width: 120px" placeholder="姓名" />
+            <el-button type="danger" @click="showDeleteDialog" round>批量删除</el-button>
+            <el-input v-model="filterUserForm.userid" style="width: 150px" placeholder="用户ID" :prefix-icon="Place"/>
+            <el-input v-model="filterUserForm.username" style="width: 120px" placeholder="姓名" :prefix-icon="User"/>
             <el-select v-model="filterUserForm.gender" placeholder="性别" size="middle" style="width: 80px;">
-                <el-option v-for="item in genderOptions" :key="item.value" :label="item.label" :value="item.value" />
+                <el-option v-for="item in genderOptions" :key="item.value" :label="item.label" :value="item.value">
+                    <el-icon v-if="item.value==1"><Male /></el-icon>
+                    <el-icon v-else-if="item.value==0"><Female /></el-icon>
+                    <el-icon v-else><CircleClose /></el-icon>
+                    {{item.label}}
+                </el-option>
             </el-select>
             <el-select v-model="filterUserForm.institute" placeholder="学院" size="middle"
                 @change="() => { filterUserForm.major = '' }">
@@ -202,9 +207,9 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios'
-import { Delete, Warning } from '@element-plus/icons-vue'
+import { Delete, Warning,Place,User,Male,Female,CircleClose } from '@element-plus/icons-vue'
 import instituteMajor from '@/assets/instituteMajor.js'
-import { ElMessage,ElNotification } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 
 const tableData = ref([])
 const dialogVisible = ref(false)
@@ -368,16 +373,16 @@ const showPersonalCard = (user) => {
 }
 
 // 显示用户加入的社团
-const showClub = async (user)=>{
-    await axios.get(`/adminapi/clubmembers/user/${user.userid}`).then(res=>{
+const showClub = async (user) => {
+    await axios.get(`/adminapi/clubmembers/user/${user.userid}`).then(res => {
         const clubs = res.data.data
         const minister = 'color:#626aef'
         const member = 'color:rgb(64,158,255)'
-        if(clubs.length>0){
+        if (clubs.length > 0) {
             let str = ``
-            for(var i in clubs){
+            for (var i in clubs) {
                 str += `<div style="width:260px;display:flex;justify-content:space-between;">
-                    <strong style="${clubs[i].user_role==1?minister:member}">
+                    <strong style="${clubs[i].user_role == 1 ? minister : member}">
                         ${clubs[i].club_name}
                     </strong>
                     <span>${clubs[i].join_time}</span>
@@ -389,7 +394,7 @@ const showClub = async (user)=>{
                 message: str,
                 duration: 5000,
             })
-        }else{
+        } else {
             ElNotification.error({
                 title: `${user.username}`,
                 message: '该用户未加入任何社团',
@@ -422,11 +427,19 @@ const showClub = async (user)=>{
 
     .el-input {
         margin: 0 10px;
+
+        .el-input__wrapper {
+            border-radius: 40px;
+        }
     }
 
     .el-select {
         width: 180px;
         margin-right: 10px;
+
+        .el-select__wrapper {
+            border-radius: 20px;
+        }
     }
 }
 

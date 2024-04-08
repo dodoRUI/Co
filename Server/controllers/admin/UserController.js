@@ -26,7 +26,8 @@ const UserController = {
                     profile: result[0].profile,
                     gender: Number(result[0].gender),
                     avatar: result[0].avatar,
-                    role: result[0].role
+                    role: result[0].role,
+                    club_id: result[0].club_id
                 }
             })
         }
@@ -144,7 +145,7 @@ const UserController = {
     },
     // 查看某个用户加入的社团
     getUserClubs:async(req,res)=>{
-        const result = await UserServices.getUserClubs(req.params.userid)
+        const result = await UserService.getUserClubs(req.params.userid)
         res.send({
             data:result
         })

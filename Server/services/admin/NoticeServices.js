@@ -40,5 +40,10 @@ const NoticeService = {
         const result = await promisePool.query(`insert into tb_notices(notice_title,notice_content,creator,notice_time) values(?,?,?,?)`, [notice_title, notice_content, creator, notice_time])
         return result[0]
     },
+    // 修改通知
+    noticeUpdate: async ({ notice_id, notice_title, notice_content, creator, notice_time }) => {
+        const result = await promisePool.query(`update tb_notices set notice_title=?,notice_content=?,creator=?,notice_time=? where notice_id=?`, [notice_title, notice_content, creator, notice_time, notice_id])
+        return result[0]
+    },
 }
 module.exports = NoticeService

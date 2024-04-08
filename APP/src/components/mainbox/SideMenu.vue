@@ -13,7 +13,7 @@
                     <i class="iconfont icon-shouye"></i>
                     <span>系统首页</span>
                 </el-menu-item>
-                <el-menu-item index="/notice">
+                <el-menu-item index="/notice" v-admin>
                     <i class="iconfont icon-gonggaozixunicon-announcementInformation"></i>
                     <span>公告通知</span>
                 </el-menu-item>
@@ -34,11 +34,11 @@
                         <i class="iconfont icon-shetuan"></i>
                         <span>社团管理</span>
                     </template>
-                    <el-menu-item index="/club/clublist"><span>所有社团</span></el-menu-item>
-                    <el-menu-item index="/club/clubstatistics"><span>社团数据</span></el-menu-item>
+                    <el-menu-item index="/club/clublist" v-admin><span>所有社团</span></el-menu-item>
+                    <el-menu-item index="/club/clubstatistics" v-admin><span>社团数据</span></el-menu-item>
                     <el-menu-item index="/club/clubnews"><span>社团资讯</span></el-menu-item>
                     <el-menu-item index="/club/applyconfirm"><span>申请审批</span></el-menu-item>
-                    <el-menu-item index="/club/clubmembers"><span>我的社团</span></el-menu-item>
+                    <el-menu-item index="/club/clubinfo"><span>我的社团</span></el-menu-item>
                 </el-sub-menu>
                 <el-sub-menu index="/users" v-admin>
                     <template #title>

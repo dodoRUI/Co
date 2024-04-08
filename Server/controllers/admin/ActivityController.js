@@ -10,8 +10,40 @@ const ActivityController = {
     },
     // 新增活动
     activityAdd: async (req, res) => {
-        // console.log(req.body)
-        console.log(req.files)
+        // 处理文件原始名，转换成UTF-8格式
+        if (req.files['file']) {
+            const originalFilename = Buffer.from(req.files['file'][0].originalname, 'binary').toString('utf-8');
+            req.files['file'][0].originalname = originalFilename
+        }
+        const result = await ActivityService.activityAdd(req.body, req.files)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
+    },
+    // 获取所有活动
+    actvtListGet: async (req, res) => {
+        const result = await ActivityService.actvtListGet(req.query)
+        res.send({
+            data: result.data,
+            total: result.total,
+            ActionType: "OK"
+        })
+    },
+    // 筛选活动
+    actvtFilter:async(req,res)=>{
+        const result = await ActivityService.actvtFilter(req.query)
+        res.send({
+            data: result.data,
+            total: result.total,
+            ActionType: "OK"
+        })
+    },
+    // 删除活动
+    activityDelete:async(req,res)=>{
+        const result = await ActivityService.activityDelete(req.query.actvt)
+        res.send({
+            ActionType: result.affectedRows == 1 ? "OK" : "Error"
+        })
     }
 }
 

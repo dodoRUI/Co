@@ -28,33 +28,29 @@
                         <el-form-item label="活动海报" prop="poster">
                             <el-upload class="avatar-uploader" :show-file-list="false" :auto-upload="false"
                                 :on-change="posterChange">
-                                <img v-show="actvtForm.poster" :src="actvtForm.poster" class="avatar" />
+                                <img v-show="actvtForm.posterUrl" :src="actvtForm.posterUrl" class="avatar" />
                                 <el-icon class="avatar-uploader-icon">
                                     <Plus />
                                 </el-icon>
                             </el-upload>
                         </el-form-item>
                         <el-form-item label="相关文件" prop="detailFile">
-                            <el-upload class="upload-demo" multiple :on-remove="handleRemove"
-                                :before-remove="beforeRemove" :limit="3" :on-exceed="handleExceed"
+                            <el-upload ref="uploadfile" class="upload-demo" multiple :on-remove="handleRemove"
+                                :before-remove="beforeRemove" :limit="1" :on-exceed="handleExceed"
                                 :on-change="fileChange" :auto-upload="false">
                                 <el-button type="primary" round plain>点击上传相关文件</el-button>
-                                <template #tip>
-                                    <span class="el-upload__tip" style="color: #ccc;user-select: none;">
-                                        您最多可上传三个文件，且均不大于500KB
-                                    </span>
-                                </template>
                             </el-upload>
                         </el-form-item>
                         <div class="button">
-                            <el-button type="primary" round :icon="Promotion" @click="submitForm(actvtForm)">提交</el-button>
+                            <el-button type="primary" round :icon="Promotion"
+                                @click="submitForm(actvtForm)">提交</el-button>
                             <el-button round @click="resetForm(actvtForm)">重置</el-button>
                         </div>
                     </div>
                     <div class="right">
                         <el-form-item label="活动介绍" prop="content">
                             <div class="editor">
-                                <editor @text="handleChange" />
+                                <editor @text="handleChange" :clear="clear"/>
                             </div>
                         </el-form-item>
                     </div>
@@ -69,10 +65,12 @@ import { onMounted, reactive, ref } from 'vue';
 import editor from '@/components/editor/Editor.vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { genFileId } from 'element-plus'
 import { Promotion, Plus } from '@element-plus/icons-vue'
 import upload from '@/utils/upload'
+import formatDateTime from '@/utils/formatDateTime'
 
-
+const editorRef = ref(null)
 const clubs = ref([])
 onMounted(async () => {
     await axios.get('/adminapi/activities/clubnames').then(res => {
@@ -87,10 +85,9 @@ const actvtForm = reactive({
     content: '',
     club: '',
     place: '',
-    poster: '',
-    posterFile: null,
-    relFiles: [],
-    detailFile: '',
+    posterUrl: '',
+    poster: null,
+    file: null,
 })
 
 
@@ -102,11 +99,8 @@ const actvtAddRules = reactive({
     club: [
         { required: true, message: '请选择社团', trigger: 'blur' },
     ],
-    start: [
-        { required: true, message: '请选择开始时间', trigger: 'blur' },
-    ],
-    end: [
-        { required: true, message: '请选择结束时间', trigger: 'blur' },
+    period: [
+        { required: true, message: '请选择活动时间', trigger: 'blur' },
     ],
     place: [
         { required: true, message: '请输入活动地点', trigger: 'blur' },
@@ -119,25 +113,32 @@ const actvtAddRules = reactive({
 // 获取富文本编辑器内容改变
 const handleChange = (content) => {
     actvtForm.content = content
+    clear.value = false
 }
 
 // 海报上传显示
 const posterChange = (file) => {
-    actvtForm.poster = URL.createObjectURL(file.raw)
-    actvtForm.posterFile = file.raw
+    actvtForm.posterUrl = URL.createObjectURL(file.raw)
+    actvtForm.poster = file.raw
 }
 
 // 文件上传
-const fileChange = (file, uploadFiles) => {
-    actvtForm.relFiles = uploadFiles.map(file=>file.raw)
+const fileChange = (file) => {
+    actvtForm.file = file.raw
 }
-const handleRemove = (file, uploadFiles) => {
-    actvtForm.relFiles = uploadFiles.map(file=>file.raw)
+const handleRemove = () => {
+    actvtForm.file = null
 }
-const handleExceed = (files, uploadFiles) => {
-    ElMessage.warning(
-        `您最多只能选择3个文件!`
+const uploadfile = ref()
+const handleExceed = (files) => {
+    ElMessage.success(
+        `文件已更新，您最多只能选择1个文件`
     )
+    uploadfile.value.clearFiles()
+    const file = files[0]
+    file.uid = genFileId()
+    uploadfile.value.handleStart(file)
+    actvtForm.file = file
 }
 const beforeRemove = (uploadFile, uploadFiles) => {
     return ElMessageBox.confirm(
@@ -149,11 +150,31 @@ const beforeRemove = (uploadFile, uploadFiles) => {
 }
 
 // 提交活动信息
-const submitForm = (actvtForm)=>{
-    console.log(actvtForm)
-    upload('/adminapi/activities/addactivity',actvtForm).then(res=>{
-        console.log(res)
+const submitForm = (actvtForm) => {
+    actvtForm.period[0] = formatDateTime.dateTime(actvtForm.period[0])
+    actvtForm.period[1] = formatDateTime.dateTime(actvtForm.period[1])
+    upload('/adminapi/activities/addactivity', actvtForm).then(res => {
+        ElMessage({
+            message: res.ActionType=='OK'?'添加成功':'添加失败',
+            type: res.ActionType=='OK'?'success':'error',
+            duration: 2000,
+        })
+        resetForm()
     })
+}
+// 重置表单
+const clear = ref(false)
+const resetForm = () => {
+    actvtForm.period = []
+    actvtForm.name = ''
+    actvtForm.content = ''
+    actvtForm.club = ''
+    actvtForm.place = ''
+    actvtForm.posterUrl = ''
+    actvtForm.poster = null
+    actvtForm.file = null
+    uploadfile.value.clearFiles()
+    clear.value = true
 }
 </script>
 
@@ -183,8 +204,8 @@ const submitForm = (actvtForm)=>{
 
 /* 头像上传 */
 .avatar-uploader .avatar {
-    width: 150px;
-    height: 200px;
+    width: 180px;
+    height: 240px;
     display: block;
     position: absolute;
     z-index: 2;
@@ -206,8 +227,8 @@ const submitForm = (actvtForm)=>{
 :deep(.el-icon.avatar-uploader-icon) {
     font-size: 28px;
     color: #8c939d;
-    width: 150px;
-    height: 200px;
+    width: 180px;
+    height: 240px;
     text-align: center;
 }
 </style>
