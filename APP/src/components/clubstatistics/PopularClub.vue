@@ -35,6 +35,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as echarts from 'echarts'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus';
 
 const router = useRouter()
 
@@ -45,6 +46,10 @@ onMounted(() => {
 })
 const getData = async () => {
     let res = await axios.get('/adminapi/clubs/statistics/stars')
+    if(!res.data.success){
+        ElMessage.error(res.data.message)
+        return
+    }
     DATA.value = res.data.data.sort((a, b) => a.vote_count - b.vote_count)
     console.log(DATA.value)
 
@@ -109,7 +114,7 @@ const getData = async () => {
 
 // 跳转社团详情页面
 const gotoClub = (id)=>{
-    router.push({path:'/club/clubinfo',query:{club_id:id}})
+    router.push({path:'clubinfo',query:{club_id:id}})
 }
 </script>
 

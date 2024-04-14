@@ -38,6 +38,27 @@ clubRouter.post("/adminapi/clubs/clubinfo/update",clubUpload.single('file'),Club
 
 
 // 申请审批
+// 获取所有申请
 clubRouter.get("/adminapi/clubs/applications",ClubController.clubApplyGet)
+// 同意申请
+clubRouter.post("/adminapi/clubs/applications/accept",ClubController.clubApplyAccept)
+// 拒绝申请
+clubRouter.post("/adminapi/clubs/applications/refuse",ClubController.clubApplyRefuse)
+// 首页获取待处理申请数量
+clubRouter.get("/adminapi/clubs/applications/applynum",ClubController.applyNumGet)
 
+
+// 社团资讯新闻
+// 添加新闻
+clubRouter.post("/adminapi/clubs/clubnews/add",ClubController.clubNewsAdd)
+// 获取社团新闻
+clubRouter.get("/adminapi/clubs/clubnews/get",ClubController.clubNewsGet)
+// 筛选新闻
+clubRouter.get("/adminapi/clubs/clubnews/filter",ClubController.clubNewsFilter)
+// 修改新闻
+clubRouter.put("/adminapi/clubs/clubnews/update",ClubController.clubNewsUpdate)
+// 删除新闻
+clubRouter.delete("/adminapi/clubs/clubnews/delete/:id",ClubController.clubNewsDelete)
+// 批量删除
+clubRouter.delete("/adminapi/clubs/clubnews/delete",ClubController.clubNewsMultipleDelete)
 module.exports = clubRouter

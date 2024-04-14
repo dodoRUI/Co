@@ -5,37 +5,48 @@
                 <div class="sign-up">
                     <h3>用户注册</h3>
                     <div class="sign-up-form">
-                        <input type="text" placeholder="学号/工号">
-                        <input type="text" placeholder="手机号">
-                        <input type="password" placeholder="密码">
-                        <input type="password" placeholder="确认密码">
-                        <div class="code">
-                            <input type="text" placeholder="请输入验证码">
-                            <span>SWUST</span>
+                        <div class="major">
+                            <el-cascader v-model="registerForm.instituteMajor" :options="options" @change="handleChange"
+                                placeholder="学院专业" />
                         </div>
-
-                        <button>注册</button>
+                        <input type="text" v-model="registerForm.userid" placeholder="学号/工号" @change="useridCheck">
+                        <input type="text" v-model="registerForm.classid" placeholder="班级">
+                        <input type="password" v-model="registerForm.password" placeholder="密码">
+                        <input type="password" v-model="registerForm.password2" placeholder="确认密码">
+                        <div class="captcha">
+                            <input v-model="registerCaptcha" type="text" placeholder="请输入验证码">
+                            <canvas ref="registerCaptchaCanvas" class="canvas" @click="refreshCaptcha"></canvas>
+                        </div>
+                        <button @click="submitRegistration">注册</button>
                     </div>
                 </div>
                 <div class="sign-in">
-                    <h3>用户登录</h3>
+                    <h3>
+                        <el-switch v-model="loginForm.stage" inline-prompt active-text="管理" inactive-text="用户"
+                            size="large" />
+                        用户登录
+                    </h3>
                     <div class="sign-in-form" @keydown.enter="handleLogin(loginForm)">
                         <input type="text" placeholder="学号/工号" v-model="loginForm.userid">
                         <input type="password" placeholder="密码" v-model="loginForm.password">
                         <div class="forget"><a href="#">忘记密码？</a></div>
+                        <div class="captcha">
+                            <input v-model="loginCaptcha" type="text" placeholder="请输入验证码">
+                            <canvas ref="loginCaptchaCanvas" class="canvas" @click="refreshCaptcha"></canvas>
+                        </div>
                         <button @click="handleLogin(loginForm)">登录</button>
                     </div>
                 </div>
             </div>
             <div class="overlay">
                 <div class="left-pannel">
-                    <img src="../assets/西科大logo.png" :class="{ 'rotate-image': loginSuccess }">
+                    <img src="../assets/西科大logo.png" :class="{ 'lrotate-image': loginSuccess }">
                     <h3>西南科技大学社团管理系统</h3>
                     <h3 class="title">没有账号?</h3>
                     <button id="toSignUp">点击注册</button>
                 </div>
                 <div class="right-pannel">
-                    <img src="../assets/西科大logo.png">
+                    <img src="../assets/西科大logo.png" :class="{ 'rrotate-image': registerSuccess }">
                     <h3>西南科技大学社团管理系统</h3>
                     <h3 class="title">已有账号?</h3>
                     <button id="toSignIn">点击登录</button>
@@ -47,46 +58,181 @@
 
 <script setup>
 import { ElMessage } from 'element-plus'
-import { onMounted, reactive,ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useHomeStore } from '@/stores/home'
+import instituteMajor from '@/assets/instituteMajor.js'
+
+const loginCaptcha = ref('');
+const loginCaptchaText = ref('');
+const loginCaptchaCanvas = ref(null);
+const registerCaptcha = ref('');
+const registerCaptchaText = ref('');
+const registerCaptchaCanvas = ref(null);
+// 生成验证码函数
+function generateCaptcha(canvas, textRef) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    textRef.value = generateRandomString();
+    ctx.font = '100px Arial'
+    ctx.fillStyle = '#fff'
+    ctx.rotate((Math.PI / 180) * (Math.random() * 10 - 5))
+    ctx.fillText(textRef.value, canvas.width / 2 - 130, canvas.height / 2 + 30)
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+    }
+}
+// 刷新验证码函数
+function refreshCaptcha() {
+    generateCaptcha(loginCaptchaCanvas.value, loginCaptchaText)
+    generateCaptcha(registerCaptchaCanvas.value, registerCaptchaText)
+}
+// 生成随机字符串函数
+function generateRandomString() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    const charactersLength = characters.length;
+    for (let i = 0; i < 4; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
 
 const router = useRouter()
 const store = useHomeStore()
 const loginSuccess = ref(false)
 const loginForm = reactive({
     userid: '',
-    password: ''
-})
-onMounted(() => {
-    const container = document.querySelector('#container');
-    const signIn = document.querySelector('#toSignIn');
-    const signUp = document.querySelector('#toSignUp');
-    signUp.addEventListener("click", () => container.classList.add('active'))
-    signIn.addEventListener("click", () => container.classList.remove('active'))
+    password: '',
+    stage: false
 })
 
+const signIn = ref(null)
+onMounted(() => {
+    const container = document.querySelector('#container');
+    signIn.value = document.querySelector('#toSignIn');
+    const signUp = document.querySelector('#toSignUp');
+    signUp.addEventListener("click", () => container.classList.add('active'))
+    signIn.value.addEventListener("click", () => container.classList.remove('active'))
+
+    generateCaptcha(loginCaptchaCanvas.value, loginCaptchaText)         // 生成登录验证码
+    generateCaptcha(registerCaptchaCanvas.value, registerCaptchaText)   // 生成注册验证码
+})
+
+// 登录提交
 function handleLogin(loginForm) {
-    axios.post("/adminapi/users/login", loginForm).then(res => {
-        if (res.data.ok === 1) {
-            store.addUserInfo(res.data.data)
-            store.changeGetterRouter(false)
-            loginSuccess.value = true
-            setTimeout(() => {
-                router.push('/home')
-            }, 1200);
+    if (loginCaptcha.value.toLowerCase() === loginCaptchaText.value.toLowerCase()) {
+        axios.post("/adminapi/users/login", loginForm).then(res => {
+            if (res.data.ok === 1) {
+                store.addUserInfo(res.data.data)
+                store.changeGetterRouter(false)
+                loginSuccess.value = true
+                setTimeout(() => {
+                    if (loginForm.stage) {
+                        router.push('/backstage/home')
+                    }else{
+                        router.push('/front/home')
+                    }
+                }, 200);
+            } else {
+                ElMessage.error('用户不存在或密码错误！')
+            }
+        })
+    } else {
+        ElMessage.error("验证码错误!")
+        refreshCaptcha();
+    }
+}
+
+// 注册
+const options = Object.entries(instituteMajor).map(([faculty, majors]) => {
+    return {
+        value: faculty,
+        label: faculty,
+        children: majors.map(major => {
+            return {
+                value: major,
+                label: major
+            }
+        })
+    }
+})
+const registerSuccess = ref(false)
+const registerForm = reactive({
+    legal: false,
+    userid: '',
+    password: '',
+    password2: '',
+    instituteMajor: '',
+    classid: ''
+})
+// 查看用户id是否已经注册过
+const useridCheck = async () => {
+    if (registerForm.userid.length === 10) {
+        const res = await axios.get(`/adminapi/users/login/${registerForm.userid}`)
+        if (res.data.repeat) {
+            ElMessage.error('该学号已注册!')
+            registerForm.legal = false
         } else {
-            ElMessage.error('用户不存在或密码错误！')
+            registerForm.legal = true
         }
-    })
+    } else {
+        ElMessage.error('学号长度应为 10位')
+        registerForm.legal = false
+    }
+
+}
+// 提交注册函数
+const submitRegistration = async () => {
+    if (registerCaptcha.value.toLowerCase() === registerCaptchaText.value.toLowerCase()) {
+        if (Object.values(registerForm).some(item => item == '')) {
+            ElMessage.error('请将信息填写完整!')
+            refreshCaptcha()
+            return
+        }
+        if (!registerForm.legal) {
+            ElMessage.error('请先输入正确的学号!')
+            refreshCaptcha()
+            return
+        }
+        if (registerForm.password !== registerForm.password2) {
+            ElMessage.error('两次密码输入不一致!')
+            registerForm.password = registerForm.password2 = ''
+            refreshCaptcha()
+            return
+        }
+        const res = await axios.post('/adminapi/users/login/register', registerForm)
+        if (res.data.success) {
+            registerSuccess.value = true
+            signIn.value.click()
+            for (var i in registerForm) {
+                registerForm[i] = ''
+            }
+            registerForm.legal = false
+            registerCaptcha.value = ''
+            refreshCaptcha()
+            ElMessage.success('注册成功!')
+        }
+
+    } else {
+        ElMessage.error("验证码错误!")
+        refreshCaptcha()
+    }
 }
 </script>
 
 <style lang="scss" scoped>
+.lrotate-image {
+    transform: scale(0.95);
+}
 
-.rotate-image {
-    transform: scale(1.1) rotate(360deg);
+.rrotate-image {
+    transform: scale(0.95);
 }
 
 * {
@@ -106,18 +252,21 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-image:linear-gradient(125deg, #417dff, #55e7fc, #c79fff, #ff9ec2, #55e7fc, #417dff);
+    background-image: linear-gradient(125deg, #417dff, #55e7fc, #c79fff, #ff9ec2, #55e7fc, #417dff);
     background-size: 400%;
     animation: bgMove 20s infinite;
+
     @keyframes bgMove {
-        0%{
-            background-position:0% 0%
+        0% {
+            background-position: 0% 0%
         }
-        50%{
-            background-position:100% 50%
+
+        50% {
+            background-position: 100% 50%
         }
-        100%{
-            background-position:0% 0%
+
+        100% {
+            background-position: 0% 0%
         }
     }
 
@@ -127,6 +276,7 @@ body {
         height: 600px;
         border-radius: 10px;
         overflow: hidden;
+        background-color: white;
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 
         .form {
@@ -169,20 +319,32 @@ body {
                     display: flex;
                     flex-direction: column;
 
-                    .code {
-                        margin-bottom: 30px;
+                    .major {
+                        width: 100%;
+                        margin-top: 5px;
 
-                        span {
-                            display: inline-block;
-                            box-sizing: border-box;
-                            width: 144px;
-                            height: 50px;
-                            color: white;
-                            background: linear-gradient(-45deg, #9378ff, #ff77c2);
-                            border-radius: 5px;
-                            text-align: center;
-                            line-height: 50px;
-                            font-size: 30px;
+                        :deep(.el-input .el-input__wrapper) {
+                            border-radius: 20px !important;
+                            width: 320px;
+                        }
+                    }
+
+                    .captcha {
+                        height: 60px;
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 30px;
+                        padding-bottom: 0;
+
+                        input {
+                            margin-bottom: 0;
+                        }
+
+                        .canvas {
+                            width: 140px;
+                            height: 60px;
+                            background: linear-gradient(45deg, #9378ff, #ff77c2);
+                            border-radius: 10px;
                         }
                     }
 
@@ -220,11 +382,36 @@ body {
                 h3 {
                     text-align: center;
                     margin-bottom: 20px;
+                    position: relative;
+
+                    .el-switch {
+                        position: absolute;
+                        top: -8px;
+                        left: 0;
+                    }
                 }
 
                 .sign-in-form {
                     display: flex;
                     flex-direction: column;
+
+                    .captcha {
+                        height: 60px;
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 30px;
+
+                        input {
+                            margin-bottom: 0;
+                        }
+
+                        .canvas {
+                            width: 140px;
+                            height: 60px;
+                            background: linear-gradient(15deg, #417dff, #55e7fc);
+                            border-radius: 10px;
+                        }
+                    }
 
                     .forget {
                         text-align: right;
@@ -234,8 +421,8 @@ body {
                             color: #ccc;
                             text-decoration: none;
 
-                            &:active {
-                                color: #417dff;
+                            &:hover {
+                                color: rgb(73, 164, 254);
                                 text-decoration: none;
                             }
                         }
@@ -291,7 +478,7 @@ body {
                 img {
                     width: 280px;
                     margin: 60px 0 20px 0;
-                    transition: transform 1s ease;
+                    transition: all 0.2s ease;
 
                 }
 
@@ -341,6 +528,7 @@ body {
                 img {
                     width: 280px;
                     margin: 60px 0 20px 0;
+                    transition: all 0.1s ease;
                 }
 
                 button {

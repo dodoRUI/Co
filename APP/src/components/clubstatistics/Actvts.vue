@@ -35,6 +35,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 import * as echarts from 'echarts'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus';
 
 const router = useRouter()
 
@@ -49,10 +50,12 @@ const DATA = ref([])
 const optionBar = ref({})
 const getData = async () => {
     let res = await axios.get('/adminapi/clubs/statistics/actvts')
+    if(!res.data.success){
+        ElMessage.error(res.data.message)
+        return
+    }
     let data = res.data.data
-
     DATA.value = data
-
     optionBar.value = {
         title: {
             text: '社团活动次数统计',
@@ -89,7 +92,7 @@ const getData = async () => {
 
 // 跳转社团详情页面
 const gotoClub = (id) => {
-    router.push({ path: '/club/clubinfo', query: { club_id: id } })
+    router.push({ path: 'clubinfo', query: { club_id: id } })
 }
 </script>
 

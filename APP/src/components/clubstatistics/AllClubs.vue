@@ -68,6 +68,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useTransition } from '@vueuse/core'
 import { CaretTop } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus';
 
 const DATA = ref({})
 const clubsNum = ref(0)
@@ -89,6 +90,10 @@ onMounted(async () => {
 })
 const getClubsData = async () => {
     let res = await axios.get("/adminapi/clubs/statistics")
+    if (!res.data.success) {
+        ElMessage.error(res.data.message)
+        return
+    }
     DATA.value = res.data.data
     clubsNum.value = DATA.value.clubsData.length
     membersNum.value = DATA.value.maleMembers.length + DATA.value.femaleMembers.length
@@ -96,7 +101,7 @@ const getClubsData = async () => {
     maleMembersNum.value = DATA.value.maleMembers.length
     femaleMembersNum.value = DATA.value.femaleMembers.length
 
-    actvtRatio.value = `${actvtsNum.value*10}%`
+    actvtRatio.value = `${actvtsNum.value * 10}%`
 }
 const instituteClubsFilter = () => {
     let obj = {}
@@ -257,7 +262,7 @@ const option1 = ref({
             type: 'pie',
             radius: ['40%', '80%'],
             avoidLabelOverlap: false,
-            center: ['40%', '50%'],
+            center: ['35%', '50%'],
             itemStyle: {
                 borderRadius: 10,
                 borderColor: '#fff',

@@ -9,44 +9,44 @@
             </div>
             <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" :collapse="store.isCollapse"
                 :collapse-transition="true" :router="true" :default-active="route.fullPath">
-                <el-menu-item index="/home">
+                <el-menu-item index="/backstage/home">
                     <i class="iconfont icon-shouye"></i>
                     <span>系统首页</span>
                 </el-menu-item>
-                <el-menu-item index="/notice" v-admin>
+                <el-menu-item index="/backstage/notice" v-admin>
                     <i class="iconfont icon-gonggaozixunicon-announcementInformation"></i>
                     <span>公告通知</span>
                 </el-menu-item>
-                <el-menu-item index="/center">
+                <el-menu-item index="/backstage/center">
                     <i class="iconfont icon-icon-person-renwu"></i>
                     <span>个人中心</span>
                 </el-menu-item>
-                <el-sub-menu index="/activity">
+                <el-sub-menu index="/backstage/activity">
                     <template #title>
                         <i class="iconfont icon-huodong-saishiguanli"></i>
                         <span>活动中心</span>
                     </template>
-                    <el-menu-item index="/activity/activitylist"><span>活动赛事</span></el-menu-item>
-                    <el-menu-item index="/activity/activityadd"><span>创建活动</span></el-menu-item>
+                    <el-menu-item index="/backstage/activity/activitylist"><span>活动赛事</span></el-menu-item>
+                    <el-menu-item index="/backstage/activity/activityadd"><span>创建活动</span></el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="/club">
+                <el-sub-menu index="/backstage/club">
                     <template #title>
                         <i class="iconfont icon-shetuan"></i>
                         <span>社团管理</span>
                     </template>
-                    <el-menu-item index="/club/clublist" v-admin><span>所有社团</span></el-menu-item>
-                    <el-menu-item index="/club/clubstatistics" v-admin><span>社团数据</span></el-menu-item>
-                    <el-menu-item index="/club/clubnews"><span>社团资讯</span></el-menu-item>
-                    <el-menu-item index="/club/applyconfirm"><span>申请审批</span></el-menu-item>
-                    <el-menu-item index="/club/clubinfo"><span>我的社团</span></el-menu-item>
+                    <el-menu-item index="/backstage/club/clublist" v-admin><span>所有社团</span></el-menu-item>
+                    <el-menu-item index="/backstage/club/clubstatistics" v-admin><span>社团数据</span></el-menu-item>
+                    <el-menu-item index="/backstage/club/clubnews"><span>社团资讯</span></el-menu-item>
+                    <el-menu-item index="/backstage/club/applyconfirm"><span>申请审批</span></el-menu-item>
+                    <el-menu-item index="/backstage/club/clubinfo"><span>我的社团</span></el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="/users" v-admin>
+                <el-sub-menu index="/backstage/users" v-admin>
                     <template #title>
                         <i class="iconfont icon-yonghuguanli"></i>
                         <span>用户管理</span>
                     </template>
-                    <el-menu-item index="/users/useradd"><span>添加用户</span></el-menu-item>
-                    <el-menu-item index="/users/userlist"><span>用户列表</span></el-menu-item>
+                    <el-menu-item index="/backstage/users/useradd"><span>添加用户</span></el-menu-item>
+                    <el-menu-item index="/backstage/users/userlist"><span>用户列表</span></el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
@@ -118,7 +118,7 @@ const vAdmin = {
 
         &::-webkit-scrollbar-thumb {
             width:10px;
-            background: linear-gradient(15deg, rgb(64,158,255), #55e7fc);
+            background: linear-gradient(15deg, rgba(64, 158, 255,0.5), rgba(85,231,252,0.5));
             /* 设置滑块颜色 */
             border-radius: 5px;
             /* 设置滑块圆角 */

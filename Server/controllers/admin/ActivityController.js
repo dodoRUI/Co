@@ -4,9 +4,7 @@ const ActivityController = {
     // 返回所有俱乐部ID及其名称，给前端做选择器的Option
     getClubNames: async (req, res) => {
         const result = await ActivityService.getClubNames()
-        res.send({
-            data: result
-        })
+        res.send(result)
     },
     // 新增活动
     activityAdd: async (req, res) => {
@@ -16,34 +14,22 @@ const ActivityController = {
             req.files['file'][0].originalname = originalFilename
         }
         const result = await ActivityService.activityAdd(req.body, req.files)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
+        res.send(result)
     },
     // 获取所有活动
     actvtListGet: async (req, res) => {
         const result = await ActivityService.actvtListGet(req.query)
-        res.send({
-            data: result.data,
-            total: result.total,
-            ActionType: "OK"
-        })
+        res.send(result)
     },
     // 筛选活动
     actvtFilter:async(req,res)=>{
         const result = await ActivityService.actvtFilter(req.query)
-        res.send({
-            data: result.data,
-            total: result.total,
-            ActionType: "OK"
-        })
+        res.send(result)
     },
     // 删除活动
     activityDelete:async(req,res)=>{
         const result = await ActivityService.activityDelete(req.query.actvt)
-        res.send({
-            ActionType: result.affectedRows == 1 ? "OK" : "Error"
-        })
+        res.send(result)
     }
 }
 

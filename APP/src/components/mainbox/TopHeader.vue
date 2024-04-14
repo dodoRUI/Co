@@ -13,8 +13,9 @@
 
                 <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item :icon="Plus" @click="handleCenter">个人中心</el-dropdown-item>
-                        <el-dropdown-item :icon="Plus" @click="logOut">退出登录</el-dropdown-item>
+                        <el-dropdown-item @click="router.push('/front/home')">社团官网</el-dropdown-item>
+                        <el-dropdown-item @click="handleCenter">个人中心</el-dropdown-item>
+                        <el-dropdown-item @click="logOut">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -34,7 +35,7 @@ function handleCollapse() {
     store.toggleCollapse()
 }
 function handleCenter() {
-    router.push('/center')
+    router.push('/backstage/center')
 }
 function logOut(){
     store.clearUserInfo()
@@ -49,8 +50,7 @@ function logOut(){
     margin: 0;
     padding: 0;
     height: 60px;
-    /* background:rgb(64,158,255); */
-    background: linear-gradient(90deg, #417dff, #64c7fc);
+    background: linear-gradient(15deg, #2bc3ff, #c285ff);
     display: flex;
     justify-content: space-between;
     align-items: center;

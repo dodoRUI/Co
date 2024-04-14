@@ -14,7 +14,11 @@ export default defineConfig({
       '/adminapi': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-      }
+      },
+      '/frontapi': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     }
   }
 })

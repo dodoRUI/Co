@@ -3,12 +3,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const fs = require('fs')
 var JWT = require('./utils/JWT')
 
 const userRouter = require('./routes/admin/userRouter');
 const noticeRouter = require('./routes/admin/noticeRouter');
 const clubRouter = require('./routes/admin/clubRouter');
 const activityRouter = require('./routes/admin/activityRouter');
+const frontRouter = require('./routes/users/frontRouter')
 
 var app = express();
 
@@ -25,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // token刷新
 app.use((req, res, next) => {
   // 排除login相关路由和接口，否则会一直重定向陷入循环
-  if (req.url.includes("login")) {
+  if (req.url.includes("login")||req.url.includes("front")) {
     next()
     return
   }
@@ -51,6 +53,7 @@ app.use((req, res, next) => {
   }
 })
 
+app.use(frontRouter)
 app.use(userRouter)
 app.use(noticeRouter)
 app.use(clubRouter)

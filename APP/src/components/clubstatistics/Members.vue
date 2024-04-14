@@ -79,6 +79,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { Male, Female } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
+import { ElMessage } from 'element-plus';
 
 const router = useRouter()
 const rankStandard = ref('total')
@@ -93,8 +94,11 @@ const optionBar = ref({})
 const optionPie = ref({})
 const getData = async () => {
     let res = await axios.get('/adminapi/clubs/statistics/members')
+    if(!res.data.success){
+        ElMessage.error(res.data.message)
+        return
+    }
     let data = res.data.data
-
     for (var i in data) {
         data[i].total = +data[i].male + +data[i].female
     }
@@ -230,7 +234,7 @@ const getData = async () => {
 
 // 点击跳转到对应社团详情页
 const gotoClubInfo = (id)=>{
-    router.push({path:'/club/clubinfo',query:{club_id:id}})
+    router.push({path:'clubinfo',query:{club_id:id}})
 }
 </script>
 

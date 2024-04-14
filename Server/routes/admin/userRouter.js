@@ -7,6 +7,10 @@ const upload = multer({ dest: 'public/avatarUploads/' })    // 用户头像文�
 
 // 登录验证
 userRouter.post("/adminapi/users/login",UserController.login)
+// 注册时查看用户ID是否被占用
+userRouter.get("/adminapi/users/login/:userid",UserController.registerCheck)
+// 用户注册
+userRouter.post("/adminapi/users/login/register",UserController.register)
 // 修改个人信息，要上传头像
 userRouter.post("/adminapi/users/upload",upload.single('file'),UserController.upload)
 // 修改个人密码
@@ -29,5 +33,6 @@ userRouter.delete("/adminapi/users/userlist",UserController.userMultipleDelete)
 userRouter.put("/adminapi/users/userlist/:userid",UserController.userUpdate)
 // 查看用户的社团
 userRouter.get("/adminapi/clubmembers/user/:userid",UserController.getUserClubs)
+
 
 module.exports = userRouter;
