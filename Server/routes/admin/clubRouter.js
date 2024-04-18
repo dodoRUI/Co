@@ -34,7 +34,7 @@ clubRouter.delete("/adminapi/clubs/deletemember/:clubid/:userid",ClubController.
 // 修改社团社长
 clubRouter.put("/adminapi/clubs/changeminister",ClubController.ministerChange)
 // 修改社团信息
-clubRouter.post("/adminapi/clubs/clubinfo/update",clubUpload.single('file'),ClubController.clubUpdate)
+clubRouter.post("/adminapi/clubs/clubinfo/update",clubUpload.fields([{name:'file'},{name:'file1'}]),ClubController.clubUpdate)
 
 
 // 申请审批

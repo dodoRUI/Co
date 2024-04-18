@@ -27,23 +27,38 @@ const routes = [
         component: FrontStage,
         children: [
             {
+                path: '',
+                redirect: '/front/home'
+            },
+            {
                 path: 'home',
-                name:'home',
+                name: 'home',
                 component: () => import('@/views/frontstage/Home.vue')
             },
             {
                 path: 'center',
-                name:'center',
+                name: 'center',
                 component: () => import('@/views/frontstage/Center.vue')
             },
             {
                 path: 'clubs',
-                name:'clubs',
-                component: () => import('@/views/frontstage/Clubs.vue')
+                name: 'clubs',
+                children: [
+                    {
+                        path: '',
+                        name: 'clubs',
+                        component: () => import('@/views/frontstage/Clubs.vue'),
+                    },
+                    {
+                        path: 'clubinfo',
+                        name: 'clubinfo',
+                        component: () => import('@/views/frontstage/ClubInfo.vue')
+                    }
+                ]
             },
             {
                 path: 'activities',
-                name:'activities',
+                name: 'activities',
                 component: () => import('@/views/frontstage/Activities.vue')
             },
             {
@@ -66,10 +81,10 @@ router.beforeEach((to, from, next) => {
         if (!localStorage.getItem("token")) {       // 如果没有登录，跳转登录界面
             next({ path: "/login" })
         } else {
-            if(store.userInfo.role==0){             // 用户登录，但是是普通用户，跳转到前台错误界面
+            if (store.userInfo.role == 0) {             // 用户登录，但是是普通用户，跳转到前台错误界面
                 next({ path: "/front/error" })
             }
-            else if(!store.isGetterRouter) {            // 用户第一次登录，根据权限分配子路由
+            else if (!store.isGetterRouter) {            // 用户第一次登录，根据权限分配子路由
                 router.removeRoute("backstage")
                 ConfigRouter()
                 next({ path: to.fullPath })         // 跳转到目标界面

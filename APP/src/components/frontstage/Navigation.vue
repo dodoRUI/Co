@@ -18,15 +18,15 @@
                 <li :class="currentPage == 'home' ? 'active' : ''" @click="() => { router.push('/front/home') }">
                     <div>首页</div>
                 </li>
-                <li :class="currentPage == 'center' ? 'active' : ''" @click="() => { router.push('/front/center') }">
-                    <div>个人中心</div>
-                </li>
                 <li :class="currentPage == 'clubs' ? 'active' : ''" @click="() => { router.push('/front/clubs') }">
                     <div>所有社团</div>
                 </li>
                 <li :class="currentPage == 'activities' ? 'active' : ''"
                     @click="() => { router.push('/front/activities') }">
                     <div>活动中心</div>
+                </li>
+                <li :class="currentPage == 'center' ? 'active' : ''" @click="() => { router.push('/front/center') }">
+                    <div>个人中心</div>
                 </li>
             </ul>
             <div class="signin">
@@ -365,7 +365,7 @@ const resetForm = (form) => {
                         color: white;
                     }
 
-                    background: linear-gradient(-45deg, rgba(64, 158, 255, 1), rgba(85, 231, 252,1));
+                    background: linear-gradient(-45deg, rgba(64, 158, 255, 1), rgba(85, 231, 252, 1));
                 }
             }
         }

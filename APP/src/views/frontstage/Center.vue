@@ -42,7 +42,8 @@
                 </div>
             </div>
             <div :class="{ 'clubinfo': true, 'mounted': showcard }">
-                <div class="edit" @click="()=>{showEditCard = !showEditCard}">{{ showEditCard ? '取消修改' : '修改信息' }}</div>
+                <div class="edit" @click="() => { showEditCard = !showEditCard }">{{ showEditCard ? '取消修改' : '修改信息' }}
+                </div>
                 <div v-if="!showEditCard">
                     <div class="basicinfo">
                         <h3>基本信息</h3>
@@ -65,7 +66,8 @@
                         <h3>我的社团</h3>
                         <div class="clubs">
                             <ul>
-                                <li v-for="item in userclubs" :key="item.club_id">
+                                <li v-for="item in userclubs" :key="item.club_id"
+                                    @click="() => { router.push({ path: '/front/clubs/clubinfo', query: { id: item.club_id } }) }">
                                     <div class="image">
                                         <img
                                             :src="item.club_avatar ? 'http://localhost:3000' + item.club_avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'">
@@ -93,7 +95,7 @@
                                 <el-input v-model="userinfo.userid" disabled />
                             </el-form-item>
                             <el-form-item label="用户名" prop="username">
-                                <el-input v-model="userinfo.username" maxlength="10" show-word-limit/>
+                                <el-input v-model="userinfo.username" maxlength="10" show-word-limit />
                             </el-form-item>
                             <el-form-item label="个人简介" prop="profile">
                                 <el-input v-model="userinfo.profile" type="textarea" resize="none" :rows="6"
@@ -131,7 +133,7 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { Right, Plus, Promotion } from '@element-plus/icons-vue'
 import upload from '@/utils/upload'
-import {ElMessage} from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const store = useHomeStore()
@@ -167,26 +169,26 @@ const handleChange = (file) => {
 }
 const uploadAvatar = computed(() => userinfo.newAvatar.includes("blob") ? userinfo.newAvatar : 'http://localhost:3000' + store.userInfo.avatar)
 
-const submitEditForm = async ()=>{
+const submitEditForm = async () => {
     const userform = {
-        userid:'',
-        username:'',
-        profile:'',
-        avatar:'',
-        file:null,
+        userid: '',
+        username: '',
+        profile: '',
+        avatar: '',
+        file: null,
     }
-    for(var i in userform){
+    for (var i in userform) {
         userform[i] = userinfo[i]
     }
-    const res = await upload('/frontapi/user/update',userform)
-    if(res.success){
+    const res = await upload('/frontapi/user/update', userform)
+    if (res.success) {
         ElMessage.success('修改成功')
         await getUserInfo()
-        for(var i in userform){
+        for (var i in userform) {
             userform[i] = userinfo[i]
         }
         store.addUserInfo(userform)
-    }else{
+    } else {
         ElMessage.error(res.data.message)
     }
 }
@@ -259,9 +261,11 @@ const submitEditForm = async ()=>{
 
         :deep(.avatar-uploader .el-upload:hover) {
             border-color: var(--el-color-primary);
+
             img {
                 transform: scale(1.05);
             }
+
             .el-icon {
                 color: var(--el-color-primary);
             }
@@ -455,8 +459,7 @@ const submitEditForm = async ()=>{
         }
 
         .basicinfo {
-            // border: 2px solid #ccc;
-            height: 50%;
+            height: 48%;
 
             .info {
                 display: flex;
@@ -520,16 +523,34 @@ const submitEditForm = async ()=>{
         }
 
         .clublist {
+            width: 100%;
             height: 50%;
 
             .clubs {
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+
+                &::-webkit-scrollbar {
+                    height: 5px;
+                    background-color: transparent;
+                }
+
+                &::-webkit-scrollbar-thumb {
+                    width: 10px;
+                    background: linear-gradient(15deg, rgba(64, 158, 255, 0.5), rgba(85, 231, 252, 0.5));
+                    border-radius: 5px;
+                }
+
                 ul {
-                    height: 220px;
+                    // width: 200%;
+                    height: 100%;
                     list-style: none;
                     display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    padding: 0 40px;
+                    justify-content: start;
+                    align-items: center;
+                    box-sizing: border-box;
+                    padding: 0 20px;
 
                     li:not(:last-child) {
                         width: 180px;
@@ -538,6 +559,7 @@ const submitEditForm = async ()=>{
                         flex-direction: column;
                         align-items: center;
                         border-radius: 5px;
+                        margin-right: 20px;
                         cursor: pointer;
                         transition: all 0.2s ease;
 

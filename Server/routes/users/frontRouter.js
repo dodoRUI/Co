@@ -25,4 +25,21 @@ frontRouter.put('/frontapi/activities/rate',FrontController.activitiesRate)
 
 // 下载活动相关文件
 frontRouter.get('/frontapi/activities/downloadfile',FrontController.downloadFile)
+
+
+// 获取十佳社团
+frontRouter.get('/frontapi/show/votesrank',FrontController.votesRankGet)
+
+// 获取社团信息
+frontRouter.get('/frontapi/show/clubs/clubinfo/:clubid/:userid',FrontController.clubInfoGet)
+
+// 申请加入社团
+frontRouter.post('/frontapi/clubs/applyclub',FrontController.applyClub)
+
+// 退出社团
+frontRouter.post('/frontapi/clubs/quitclub',FrontController.quitClub)
+
+// 社团投票
+frontRouter.post('/frontapi/clubs/clubvote',FrontController.clubVote)
+
 module.exports = frontRouter;

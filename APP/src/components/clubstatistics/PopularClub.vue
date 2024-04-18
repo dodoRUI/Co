@@ -8,7 +8,7 @@
                 </div>
 
                 <ul>
-                    <li v-for="(item, index) in DATA.sort((a, b) => { return b.vote_count - a.vote_count })"
+                    <li v-for="(item, index) in DATA.sort((a, b) => { return b.club_star - a.club_star })"
                         :key="index" @click="gotoClub(item.club_id)">
                         <img
                             :src="item.club_avatar ? 'http://localhost:3000' + item.club_avatar : 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png'">
@@ -16,7 +16,7 @@
                             <h3>{{ item.club_name }}</h3>
                             <span>
                                 <span class="index">{{ index + 1 }}</span>
-                                总票数：{{ item.vote_count }}
+                                总票数：{{ item.club_star }}
                             </span>
                         </div>
                     </li>
@@ -50,8 +50,7 @@ const getData = async () => {
         ElMessage.error(res.data.message)
         return
     }
-    DATA.value = res.data.data.sort((a, b) => a.vote_count - b.vote_count)
-    console.log(DATA.value)
+    DATA.value = res.data.data.sort((a, b) => a.club_star - b.club_star)
 
     option.value = {
         title: {
@@ -101,7 +100,7 @@ const getData = async () => {
                     { offset: 0, color: '#55e7fc' }, // 替换成你的第一个颜色
                     { offset: 1, color: '#417dff' } // 替换成你的第二个颜色
                 ]),
-                data: DATA.value.map(item => item.vote_count),
+                data: DATA.value.map(item => item.club_star),
                 label: {
                     show: true,
                     position: 'right',

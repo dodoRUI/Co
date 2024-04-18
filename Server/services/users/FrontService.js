@@ -85,10 +85,14 @@ const FrontService = {
     },
     // 活动评分
     activitiesRate: async ({ userid, rate, id }) => {
-        console.log(userid, rate, id)
-        const str = `/${userid},${rate}`
-        await promisePool.query(`UPDATE tb_activities SET expectation = IF(expectation IS NULL, '${str}', CONCAT(expectation, '${str}')) WHERE activity_id=?`, [id])
-        return { success: true, message: '评分成功' }
+        try {
+            const str = `/${userid},${rate}`
+            await promisePool.query(`UPDATE tb_activities SET expectation = IF(expectation IS NULL, '${str}', CONCAT(expectation, '${str}')) WHERE activity_id=?`, [id])
+            return { success: true, message: '评分成功' }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！' }
+        }
+
     },
 
     // 下载文件
@@ -96,6 +100,69 @@ const FrontService = {
         const filePath = path.join(__dirname, '../..', 'public', filepath);
         const data = fs.readFileSync(filePath)
         return data
+    },
+
+    // 获取所有社团数据
+    top10ClubsGet: async () => {
+        try {
+            const result = await promisePool.query(`SELECT c.club_id,c.club_name,c.club_avatar,c.club_profile,c.club_birth,c.club_background,c.club_slogan,c.club_type,c.club_star,COALESCE(male_count, 0) AS male_count,COALESCE(female_count, 0) AS female_count FROM tb_clubs c LEFT JOIN (SELECT club_id,SUM(CASE WHEN u.gender = 1 THEN 1 ELSE 0 END) AS male_count,SUM(CASE WHEN u.gender = 0 THEN 1 ELSE 0 END) AS female_count FROM tb_clubmembers cm INNER JOIN tb_users u ON cm.userid = u.userid GROUP BY club_id) AS gender_counts ON c.club_id = gender_counts.club_id`)
+            dateTime.dateFormat(result[0], 'club_birth')
+            return { success: true, data: result[0] }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！', error }
+        }
+    },
+    // 获取社团信息
+    clubInfoGet: async (clubid, userid) => {
+        try {
+            const club = await promisePool.query(`SELECT c.*,COALESCE(male_count, 0) AS male_count,COALESCE(female_count, 0) AS female_count FROM tb_clubs c LEFT JOIN (SELECT club_id,SUM(CASE WHEN u.gender = 1 THEN 1 ELSE 0 END) AS male_count,SUM(CASE WHEN u.gender = 0 THEN 1 ELSE 0 END) AS female_count FROM tb_clubmembers cm INNER JOIN tb_users u ON cm.userid = u.userid GROUP BY club_id) AS gender_counts ON c.club_id = gender_counts.club_id where c.club_id=${clubid}`)
+            const application = await promisePool.query(`select * from tb_applications where apply_club=${clubid} and apply_user=${userid}`)
+            const member = await promisePool.query(`select * from tb_clubmembers where club_id=${clubid} and userid=${userid}`)
+            const minister = await promisePool.query(`select u.username,u.avatar from tb_clubs c join tb_users u on c.club_minister=u.userid where c.club_id=${clubid}`)
+            const actvties = await promisePool.query(`select * from tb_activities where club_id=${clubid}`)
+            activitiesFormat(actvties[0])
+            const news = await promisePool.query(`select * from tb_clubnews where club_id=${clubid}`)
+            const vote = await promisePool.query(`select vote from tb_users where userid=${userid}`)
+            dateTime.dateFormat(club[0], 'club_birth')
+            dateTime.dateTimeFormat(news[0], 'edit_time')
+            let data = {
+                ...club[0][0], minister: minister[0][0], actvt: actvties[0][0], news: news[0][0],
+                applyState: application[0].length, isMember: member[0].length, todayVote: vote[0][0].vote
+            }
+            return { success: true, data: data }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！' }
+        }
+    },
+    applyClub: async ({ apply_club, apply_user, apply_text, apply_time }) => {
+        try {
+            await promisePool.query(`insert into tb_applications(apply_club,apply_user,apply_text,apply_time) values(?,?,?,?)`, [apply_club, apply_user, apply_text, apply_time])
+            return { success: true, message: '申请成功，请等待社长审核！' }
+        } catch (error) {
+            return { success: false, message: error.errno == 1062 ? '你的申请正在审核中，请勿重复申请！' : '服务器出错，请稍后再试！' }
+        }
+    },
+    quitClub: async ({ clubid, userid }) => {
+        try {
+            await promisePool.query(`delete from tb_clubmembers where club_id=${clubid} and userid=${userid}`)
+            return { success: true, message: '退出成功！' }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！' }
+        }
+    },
+    // 社团投票
+    clubVote: async ({ clubid, userid, date }) => {
+        try {
+            const clubname = await promisePool.query(`select club_name from tb_clubs where club_id=${clubid}`)
+            await promisePool.query('START TRANSACTION')
+            await promisePool.query(`update tb_clubs set club_star=club_star+1 where club_id=?`, [clubid])
+            await promisePool.query(`update tb_users set vote='${date},${clubname[0][0].club_name}' where userid=?`, [userid])
+            await promisePool.query('COMMIT')
+            return { success: true, message: '投票成功！' }
+        } catch (error) {
+            await promisePool.query('ROLLBACK');
+            return { success: false, message: '服务器出错，请稍后再试！' }
+        }
     }
 }
 

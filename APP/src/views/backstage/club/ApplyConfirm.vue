@@ -14,8 +14,6 @@
         <el-card class="tablePannel">
             <el-table :data="tableDataBck" style="width: 100%" ref="multipleTableRef" stripe
                 class="applylist custom-loading-svg">
-                <el-table-column prop="apply_id" label="申请编号" sortable width="120">
-                </el-table-column>
                 <el-table-column prop="apply_user" label="申请人学号" width="120">
                 </el-table-column>
                 <el-table-column prop="username" label="申请人" width="120">

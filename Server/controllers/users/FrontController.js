@@ -42,6 +42,33 @@ const FrontController = {
         const data = await FrontService.downloadFile(req.query.filepath)
         res.send(data)
     },
+
+    // 获取十佳社团
+    votesRankGet:async(req,res)=>{
+        const result = await FrontService.top10ClubsGet();
+        res.send(result)
+    },
+
+    // 获取社团信息
+    clubInfoGet:async(req,res)=>{
+        const result = await FrontService.clubInfoGet(req.params.clubid,req.params.userid);
+        res.send(result)
+    },
+    // 申请加入社团
+    applyClub:async(req,res)=>{
+        const result = await FrontService.applyClub(req.body);
+        res.send(result)
+    },
+    // 退出社团
+    quitClub:async(req,res)=>{
+        const result = await FrontService.quitClub(req.body);
+        res.send(result)
+    },
+    // 社团投票
+    clubVote:async(req,res)=>{
+        const result = await FrontService.clubVote(req.body);
+        res.send(result)
+    },
 }
 
 

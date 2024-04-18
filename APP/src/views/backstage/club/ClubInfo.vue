@@ -15,6 +15,7 @@
                             <span class="name">{{ clubInfo.club_name }}</span>
                         </span>
                     </div>
+                    <div class="type"><span>{{ clubType[clubInfo.club_type-1] }}</span></div>
                     <div class="birth">
                         成立时间：{{ clubInfo.club_birth }}
                     </div>
@@ -78,19 +79,23 @@
                 </div>
             </div>
         </el-card>
-        <el-dialog title="修改社团信息" v-model="clubInfoDialog" width="600px">
-            <el-form :model="editClubForm" label-width="80px">
+        <el-dialog title="修改社团信息" v-model="clubInfoDialog" width="700px">
+            <el-form :model="editClubForm" label-width="100px">
                 <el-form-item label="社团名称">
                     <el-input v-model="clubInfo.club_name"></el-input>
                 </el-form-item>
                 <el-form-item label="社团介绍">
                     <el-input v-model="clubInfo.club_profile" type="textarea" rows="10" resize="none"></el-input>
                 </el-form-item>
-                <el-form-item label="社团头像">
-                    <el-upload class="avatar-uploader" action="" :show-file-list="false"
-                        :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :auto-upload="false"
-                        :on-change="handleChange">
+                <el-form-item label="头像与背景">
+                    <el-upload class="avatar-uploader" action="" :show-file-list="false" :auto-upload="false" :on-change="avatarChange">
                         <img v-show="clubInfo.club_avatar" :src="uploadAvatar" class="avatar" />
+                        <el-icon class="avatar-uploader-icon">
+                            <Plus />
+                        </el-icon>
+                    </el-upload>
+                    <el-upload class="bgimg-uploader" action="" :show-file-list="false" :auto-upload="false" :on-change="bgimgChange">
+                        <img v-show="clubInfo.club_background" :src="uploadBgimg" class="bgimg" />
                         <el-icon class="avatar-uploader-icon">
                             <Plus />
                         </el-icon>
@@ -122,6 +127,8 @@ const route = useRoute()
 const router = useRouter()
 const store = useHomeStore()
 
+const clubType = ref(['学科学术类', '文化艺术类', '体育健身类', '志愿服务类', '科技创新类', '兴趣爱好类', '国际交流类', '创业就业类'])
+
 const clubInfo = ref({})
 const membersArr = ref([])
 const searchMember = ref('')
@@ -149,6 +156,7 @@ const getData = async () => {
         membersArr.value = res.data.data.members.filter(item => { return item.userid !== clubInfo.value.club_minister })
         minister.value = res.data.data.members.filter(item => { return item.userid == clubInfo.value.club_minister })[0]
         clubInfo.value.file = null
+        clubInfo.value.file1 = null
     }else{
         ElMessage.error('服务器出错，请稍后再试！')
     }
@@ -188,9 +196,15 @@ const submitMinister = async (minister) => {
 const clubInfoDialog = ref(false)
 // 头像上传显示
 const uploadAvatar = computed(() => clubInfo.value.club_avatar && clubInfo.value.club_avatar.includes("blob") ? clubInfo.value.club_avatar : 'http://localhost:3000' + clubInfo.value.club_avatar)
-const handleChange = (file) => {
+const avatarChange = (file) => {
     clubInfo.value.club_avatar = URL.createObjectURL(file.raw)
     clubInfo.value.file = file.raw
+}
+// 背景上传显示
+const uploadBgimg = computed(() => clubInfo.value.club_background && clubInfo.value.club_background.includes("blob") ? clubInfo.value.club_background : 'http://localhost:3000' + clubInfo.value.club_background)
+const bgimgChange = (file) => {
+    clubInfo.value.club_background = URL.createObjectURL(file.raw)
+    clubInfo.value.file1 = file.raw
 }
 const updateClubInfo = async (form) => {
     const res = await upload('/adminapi/clubs/clubinfo/update', form)
@@ -268,7 +282,20 @@ const updateClubInfo = async (form) => {
                     left: -40px;
                 }
             }
+        }
 
+        .type{
+            margin-top: 10px;
+            text-align: center;
+            span{
+                font-size: 14px;
+                display: inline-block;
+                padding: 5px;
+                border-radius: 20px;
+                font-weight: 100;
+                color: #6b6b6b;
+                border: 1px solid #6b6b6b;
+            }
         }
 
         .birth {
@@ -490,8 +517,30 @@ const updateClubInfo = async (form) => {
     top: 0;
     left: 0;
 }
+.bgimg-uploader .bgimg {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    overflow: hidden;
+    width: 350px;
+    height: 178px;
+    object-fit: cover;
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 
 :deep(.avatar-uploader .el-upload) {
+    border: 1px solid var(--el-border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: var(--el-transition-duration-fast);
+}
+:deep(.bgimg-uploader .el-upload) {
+    width: 350px;
     border: 1px solid var(--el-border-color);
     border-radius: 6px;
     cursor: pointer;
@@ -503,8 +552,18 @@ const updateClubInfo = async (form) => {
 :deep(.avatar-uploader .el-upload:hover) {
     border-color: var(--el-color-primary);
 }
+:deep(.bgimg-uploader .el-upload:hover) {
+    border-color: var(--el-color-primary);
+}
 
 :deep(.el-icon.avatar-uploader-icon) {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    text-align: center;
+}
+:deep(.el-icon.bgimg-uploader-icon) {
     font-size: 28px;
     color: #8c939d;
     width: 178px;

@@ -65,11 +65,11 @@ const ClubController = {
     },
     // 修改社团信息
     clubUpdate: async (req, res) => {
-        req.body.club_avatar = req.file ? `/clubAvatarUploads/${req.file.filename}` : `${req.body.club_avatar}`
+        req.body.club_avatar = req.files.file ? `/clubAvatarUploads/${req.files.file[0].filename}` : `${req.body.club_avatar}`
+        req.body.club_background = req.files.file1 ? `/clubAvatarUploads/${req.files.file1[0].filename}` : `${req.body.club_background}`
         const result = await ClubService.clubUpdate(req.body)
         res.send(result)
     },
-
 
     // 申请审批
     // 获取申请信息

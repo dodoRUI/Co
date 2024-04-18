@@ -9,14 +9,16 @@
                     :prefix-icon="Search" />
                 <el-button type="primary" round :icon="Search" @click="clubSearch(clubsearch)">查询</el-button>
                 <el-button type="default" plain round @click="reset">清除</el-button>
-                <el-select v-model="clubsearch.club_belong" placeholder="按学院显示" style="width: 200px"
-                    @change="clubSearch(clubsearch)">
+                <el-select v-model="clubsearch.club_belong" placeholder="按学院显示" style="width: 200px">
                     <el-option v-for="item in belongs" :key="item" :label="item" :value="item" />
+                </el-select>
+                <el-select v-model="clubsearch.club_type" placeholder="分类" style="width: 150px">
+                    <el-option v-for="(item, index) in clubType" :key="item" :label="item" :value="index + 1" />
                 </el-select>
             </div>
         </el-card>
         <el-card class="clublist">
-            <el-table :data="tableData" style="width: 100%" ref="multipleTableRef" stripe v-loading="loading">
+            <el-table :data="showTableData" style="width: 100%" ref="multipleTableRef" stripe v-loading="loading">
                 <el-table-column prop="club_id" label="社团ID" sortable width="100">
                 </el-table-column>
                 <el-table-column prop="club_avatar" label="社团头像">
@@ -30,7 +32,14 @@
                         <span class="clubname" @click="gotoClub(scope.row.club_id)">{{ scope.row.club_name }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="club_birth" label="成立时间">
+                <el-table-column prop="club_type" label="社团类型" width="110">
+                    <template #default="scope">
+                        <span class="clubtype" :style="{ 'border-color': typeColor(scope.row.club_type-1),'color': typeColor(scope.row.club_type-1)}">
+                        {{ clubType[scope.row.club_type - 1] }}
+                            </span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="club_birth" label="成立时间" width="120">
                 </el-table-column>
                 <el-table-column prop="club_belong" label="所属学院" width="200">
                 </el-table-column>
@@ -68,6 +77,11 @@
                 class="demo-ruleForm" status-icon :rules="clubFormRules">
                 <el-form-item label="社团名称" prop="club_name">
                     <el-input v-model="clubForm.club_name" />
+                </el-form-item>
+                <el-form-item label="社团类型" prop="club_type">
+                    <el-select v-model="clubForm.club_type" placeholder="选择社团类型" size="middle" style="width: 100%">
+                        <el-option v-for="(item, index) in clubType" :key="item" :label="item" :value="index + 1" />
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="所属学院" prop="club_belong">
                     <el-select v-model="clubForm.club_belong" placeholder="选择所属学院" size="middle" style="width: 100%">
@@ -156,35 +170,50 @@ const router = useRouter()
 
 const belongs = ref(['材料科学与工程学院', '法学院', '国防科技学院', '环境与资源学院', '计算机科学与技术学院', '经济管理学院',
     '理学院', '马克思主义学院', '生命科学与工程学院', '体育学科部', '土木工程与建筑学院', '外国语学院', '文学与艺术学院', '信息工程学院', '制造科学与工程学院'])
-
+const clubType = ref(['学科学术类', '文化艺术类', '体育健身类', '志愿服务类', '科技创新类', '兴趣爱好类', '国际交流类', '创业就业类'])
+const typeColor = (type) => {
+    return ['#FF6347', '#1E90FF', '#32CD32', '#FFD700', '#9370DB', '#FFA500', '#FF69B4', '#00CED1'][type]
+}
 
 // 获取数据
 const loading = ref(false)
-const tableData = ref([])
+const tableDataBak = ref([])
+const showTableData = ref([])
 onMounted(() => {
     getClubList()
 })
 const getClubList = async () => {
     loading.value = true
     const res = await axios.get('/adminapi/clubs/clublist')
-    tableData.value = res.data.data
+    tableDataBak.value = res.data.data
+    clubSearch()
     loading.value = false
 }
 
 // 筛选
 const clubsearch = reactive({
     club_belong: '',
-    club_name: ''
+    club_name: '',
+    club_type: ''
 })
 const clubSearch = (clubsearch) => {
-    axios.get('/adminapi/clubs/clublist/search', { params: clubsearch }).then(res => {
-        tableData.value = res.data.data
+    showTableData.value = tableDataBak.value.filter(item => {
+        for (let key in clubsearch) {
+            if (clubsearch[key] !== '') {
+                if(key==='club_name'&&item[key].includes(clubsearch[key])) continue
+                if (item[key] !== clubsearch[key]) {
+                    return false
+                }
+            }
+        }
+        return true
     })
 }
 const reset = () => {
     clubsearch.club_belong = ''
     clubsearch.club_name = ''
-    getClubList()
+    clubsearch.club_type = ''
+    clubSearch()
 }
 
 // 成立社团
@@ -197,6 +226,7 @@ const clubForm = reactive({
     club_birth: '',
     club_belong: '',
     club_minister: '',
+    club_type: '',
     file: null
 })
 const handleChange = (file) => {
@@ -207,6 +237,9 @@ const handleChange = (file) => {
 const clubFormRules = reactive({
     club_name: [
         { required: true, message: '请输入社团名称', trigger: 'blur' },
+    ],
+    club_type: [
+        { required: true, message: '请选择社团类型', trigger: 'blur' }
     ],
     club_belong: [
         { required: true, message: '请选择所属学院', trigger: 'blur' },
@@ -260,8 +293,8 @@ const clubAdd = async (form) => {
 
 // 删除社团
 const clubDelete = (club) => {
-    const { username, club_name, club_minister, club_id,club_avatar } = club
-    axios.delete('/adminapi/clubs/deleteclub', { params: { club_id, club_minister,club_avatar } }).then(res => {
+    const { username, club_name, club_minister, club_id, club_avatar } = club
+    axios.delete('/adminapi/clubs/deleteclub', { params: { club_id, club_minister, club_avatar } }).then(res => {
         if (res.data.success) {
             ElNotification.success({
                 title: `${club_name} 已被解散`,
@@ -295,6 +328,10 @@ const gotoClub = (id) => {
 </script>
 
 <style lang="scss" scoped>
+:deep(.el-dialog) {
+    margin: 50px auto;
+}
+
 .filterPannel {
     margin-top: 10px;
     background: linear-gradient(-45deg, rgba(64, 158, 255, 0.2), rgba(85, 231, 252, 0.2));
@@ -311,9 +348,10 @@ const gotoClub = (id) => {
 
     .el-select {
         margin-left: 10px;
-        :deep(.el-select__wrapper){
+
+        :deep(.el-select__wrapper) {
             border-radius: 30px
-        }  
+        }
     }
 }
 
@@ -328,6 +366,16 @@ const gotoClub = (id) => {
             color: rgb(64, 158, 255);
             border-bottom: 2px solid rgb(64, 158, 255);
         }
+    }
+    .clubtype{
+        display: inline-block;
+        font-size: 12px;
+        height: 20px;
+        line-height: 20px;
+        padding: 5px;
+        font-weight: 100;
+        border: 1px solid;
+        border-radius: 20px;
     }
 
     .el-table {

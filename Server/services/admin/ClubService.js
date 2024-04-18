@@ -42,10 +42,10 @@ const ClubService = {
         }
     },
     // 新增社团
-    clubAdd: async ({ club_name, club_avatar, club_profile, club_birth, club_belong, club_minister }) => {
+    clubAdd: async ({ club_name, club_avatar, club_profile, club_birth, club_belong, club_minister, club_type }) => {
         try {
             await promisePool.query('START TRANSACTION')
-            await promisePool.query(`insert into tb_clubs(club_name,club_avatar,club_profile,club_birth,club_belong,club_minister,members) values(?,?,?,?,?,?,?)`, [club_name, club_avatar, club_profile, club_birth, club_belong, club_minister, 1])
+            await promisePool.query(`insert into tb_clubs(club_name,club_avatar,club_profile,club_birth,club_belong,club_minister,members,club_type) values(?,?,?,?,?,?,?)`, [club_name, club_avatar, club_profile, club_birth, club_belong, club_minister, 1, club_type])
             await promisePool.query(`update tb_users set role=1 where userid=?`, [club_minister])
             await promisePool.query('COMMIT')
 
@@ -117,8 +117,8 @@ const ClubService = {
     // 获取社团点赞数据
     clubStarsGet: async () => {
         try {
-            const result = await promisePool.query(`SELECT c.club_id, c.club_name,c.club_avatar, COUNT(u.vote) AS vote_count FROM tb_clubs c LEFT JOIN tb_users u ON c.club_id = u.vote GROUP BY c.club_id, c.club_name`)
-
+            const result = await promisePool.query(`SELECT club_id, club_name,club_avatar, club_star FROM tb_clubs`)
+        // console.log(result[0])
             return { success: true, data: result[0] }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
@@ -164,11 +164,11 @@ const ClubService = {
             // 更新 tb_users 表中新社长的角色为 1
             await promisePool.query('UPDATE tb_users SET role=1 WHERE userid=?', [newMin]);
             // 更新 tb_clubmembers 表中新社长的角色为 1
-            await promisePool.query('UPDATE tb_clubmembers SET user_role=1 WHERE userid=? and club_id=?', [newMin,clubid]);
+            await promisePool.query('UPDATE tb_clubmembers SET user_role=1 WHERE userid=? and club_id=?', [newMin, clubid]);
             // 更新 tb_users 表中旧社长的角色为 0
             await promisePool.query('UPDATE tb_users SET role=0 WHERE userid=?', [oldMin]);
             // 更新 tb_clubmembers 表中旧社长的角色为 0
-            await promisePool.query('UPDATE tb_clubmembers SET user_role=0 WHERE userid=? and club_id=?', [oldMin,clubid]);
+            await promisePool.query('UPDATE tb_clubmembers SET user_role=0 WHERE userid=? and club_id=?', [oldMin, clubid]);
             // 提交事务
             await promisePool.query('COMMIT');
             // 返回成功信息或其他结果
@@ -181,9 +181,9 @@ const ClubService = {
         }
     },
     // 修改社团信息
-    clubUpdate: async ({ club_name, club_avatar, club_profile, club_id }) => {
+    clubUpdate: async ({ club_name, club_avatar, club_profile, club_id, club_background }) => {
         try {
-            await promisePool.query(`UPDATE tb_clubs SET club_name=?,club_avatar=?,club_profile=? WHERE club_id=?`, [club_name, club_avatar, club_profile, club_id])
+            await promisePool.query(`UPDATE tb_clubs SET club_name=?,club_avatar=?,club_profile=?,club_background=? WHERE club_id=?`, [club_name, club_avatar, club_profile, club_background, club_id])
             return { success: true, message: '操作成功' };
         } catch (error) {
             return { success: false, message: '操作失败', error }
@@ -203,20 +203,23 @@ const ClubService = {
         }
     },
     // 同意申请
-    clubApplyAccept: async ({ apply_id, apply_club, apply_user, join_time }) => {
+    clubApplyAccept: async ({ apply_club, apply_user, join_time }) => {
         try {
+            await promisePool.query('START TRANSACTION');
             await promisePool.query(`INSERT INTO tb_clubmembers(club_id,userid,join_time,user_role) VALUES(?,?,?,?)`, [apply_club, apply_user, join_time, 0])
             await promisePool.query(`UPDATE tb_clubs SET members=members+1 WHERE club_id=?`, [apply_club])
-            await promisePool.query(`DELETE FROM tb_applications WHERE apply_id=?`, [apply_id])
+            await promisePool.query(`DELETE FROM tb_applications WHERE apply_club=? and apply_user=?`, [apply_club, apply_user])
+            await promisePool.query('COMMIT')
             return { success: true, message: '操作成功' };
         } catch (error) {
+            await promisePool.query('ROLLBACK');
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
     // 拒绝申请
-    clubApplyRefuse: async ({ apply_id }) => {
+    clubApplyRefuse: async ({ apply_club,apply_user }) => {
         try {
-            await promisePool.query(`DELETE FROM tb_applications WHERE apply_id=?`, [apply_id])
+            await promisePool.query(`DELETE FROM tb_applications WHERE apply_club=? and apply_user=?`, [apply_club,apply_user])
             return { success: true, message: '操作成功' };
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }

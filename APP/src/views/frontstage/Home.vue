@@ -1,102 +1,106 @@
 <template>
-    <div>
-        <div class="video-container">
-            <video src="@/assets/Discover the 1000+ clubs you can join at U of T!.mp4" autoplay muted loop
-                disablePictureInPicture>
-            </video>
-            <div class="hometitle">
-                <div class="cn">高校社团管理系统</div>
-                <div class="en">Clubs Management System of University</div>
+    <Transition>
+        <div v-show="isMounted">
+            <div class="video-container">
+                <video src="@/assets/Discover the 1000+ clubs you can join at U of T!.mp4" autoplay muted loop
+                    disablePictureInPicture>
+                </video>
+                <div class="hometitle">
+                    <div class="cn">高校社团管理系统</div>
+                    <div class="en">Clubs Management System of University</div>
+                </div>
             </div>
-        </div>
-        <div class="whitespace">
-            <div class="text typewriter" v-show="startType">
-                "Unlock your potential, embrace the adventure, join the club and make your college experience
-                unforgettable!"
+            <div class="whitespace">
+                <div class="text typewriter" v-show="startType">
+                    "Unlock your potential, embrace the adventure, join the club and make your college experience
+                    unforgettable!"
+                </div>
             </div>
-        </div>
-        <div class="recentnews">
-            <h2>近期社团资讯</h2>
-            <div class="search">
-                <el-input v-model="keyword" placeholder="查询关键字" :prefix-icon="Search"
-                    @input="handleSearch()"></el-input>
-                <el-pagination v-model:current-page="currentPage" :page-size="5" layout="prev, pager, next"
-                    :total="total" @current-change="handleCurrentChange" />
-            </div>
-            <ul>
-                <div v-show="clubNews.length === 0">暂无数据</div>
-                <li v-for="(item, index) in clubNews" :key="index">
-                    <div class="clubinfo">
-                        <div class="clubavatar">
-                            <img :src="'http://localhost:3000' + item.club_avatar">
-                        </div>
-                        <div class="clubname">
-                            <div class="club">
-                                {{ item.club_name }}
-                                <span><i class="iconfont icon-shetuan"></i>{{ item.members }}</span>
+            <div class="recentnews">
+                <h2>近期社团资讯</h2>
+                <div class="search">
+                    <el-input v-model="keyword" placeholder="查询关键字" :prefix-icon="Search"
+                        @input="handleSearch()"></el-input>
+                    <el-pagination v-model:current-page="currentPage" :page-size="5" layout="prev, pager, next"
+                        :total="total" @current-change="handleCurrentChange" />
+                </div>
+                <ul>
+                    <div v-show="clubNews.length === 0">暂无数据</div>
+                    <li v-for="(item, index) in clubNews" :key="index">
+                        <div class="clubinfo">
+                            <div class="clubavatar">
+                                <img :src="'http://localhost:3000' + item.club_avatar">
                             </div>
-                            <div class="minister">{{ item.minister_name }}</div>
+                            <div class="clubname">
+                                <div class="club">
+                                    {{ item.club_name }}
+                                    <span><i class="iconfont icon-shetuan"></i>{{ item.members }}</span>
+                                </div>
+                                <div class="minister">{{ item.minister_name }}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="newsinfo">
-                        <div class="title">{{ item.news_title }}</div>
-                        <div class="content" v-html="item.news_content"></div>
-                    </div>
-                    <div class="button">
-                        <div class="time">{{ item.edit_time }}</div>
-                        <div class="more" @click="showNews(item, index)">
-                            <span>详</span>
-                            <span>情</span>
-                            <el-icon>
-                                <ArrowDown />
-                            </el-icon>
+                        <div class="newsinfo">
+                            <div class="title">{{ item.news_title }}</div>
+                            <div class="content" v-html="item.news_content"></div>
                         </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
+                        <div class="button">
+                            <div class="time">{{ item.edit_time }}</div>
+                            <div class="more" @click="showNews(item, index)">
+                                <span>详</span>
+                                <span>情</span>
+                                <el-icon>
+                                    <ArrowDown />
+                                </el-icon>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
 
-        <!-- 详情 -->
-        <el-drawer v-model="drawer" :with-header="false" :direction="(newsDrawer.index + 2) % 2 == 0 ? 'rtl' : 'ltr'"
-            class="drawer">
-            <div class="title">
-                {{ newsDrawer.news_title }}
-            </div>
-            <div class="content">
-                <div v-html="newsDrawer.news_content"></div>
-            </div>
-            <div class="minister">
-                <img :src="'http://localhost:3000' + newsDrawer.minister_avatar">
-                <span>{{ newsDrawer.minister_name }}</span>
-            </div>
-            <div class="time">
-                <span>编辑时间：</span>
-                {{ newsDrawer.edit_time }}
-            </div>
-        </el-drawer>
-    </div>
+            <!-- 详情 -->
+            <el-drawer v-model="drawer" :with-header="false"
+                :direction="(newsDrawer.index + 2) % 2 == 0 ? 'rtl' : 'ltr'" class="drawer">
+                <div class="title">
+                    {{ newsDrawer.news_title }}
+                </div>
+                <div class="content">
+                    <div v-html="newsDrawer.news_content"></div>
+                </div>
+                <div class="minister">
+                    <img :src="'http://localhost:3000' + newsDrawer.minister_avatar">
+                    <span>{{ newsDrawer.minister_name }}</span>
+                </div>
+                <div class="time">
+                    <span>编辑时间：</span>
+                    {{ newsDrawer.edit_time }}
+                </div>
+            </el-drawer>
+        </div>
+    </Transition>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, onUnmounted } from 'vue';
 import axios from 'axios'
 import { ArrowDown, Search } from '@element-plus/icons-vue'
 
 const clubNews = ref([])
 const startType = ref(false)
+const isMounted = ref(false)
 onMounted(async () => {
-    window.addEventListener('scroll',()=>{
+    window.addEventListener('scroll', () => {
         console.log(window.scrollY)
-        if(window.scrollY>=300){
+        if (window.scrollY >= 300) {
             startType.value = true
-        }else{
+        } else {
             startType.value = false
         }
     })
     await getClubNews(1)
+    isMounted.value = true
 })
-onBeforeUnmount(()=>{
-    window.removeEventListener('scroll',()=>{
+onUnmounted(() => {
+    window.removeEventListener('scroll', () => {
         startType.value = false
     })
 })
@@ -144,6 +148,14 @@ const showNews = (news, index) => {
 </script>
 
 <style lang="scss" scoped>
+.v-enter-active {
+    transition: all 0.2s ease;
+}
+
+.v-enter-from {
+    opacity: 0;
+}
+
 .video-container {
     height: 100vh;
     overflow: hidden;
@@ -280,18 +292,10 @@ const showNews = (news, index) => {
 
             &:nth-child(even) {
                 flex-direction: row;
-
-                .time {
-                    right: 5px;
-                }
             }
 
             &:nth-child(odd) {
                 flex-direction: row-reverse;
-
-                .time {
-                    left: 5px;
-                }
             }
 
             .clubinfo {
@@ -333,6 +337,7 @@ const showNews = (news, index) => {
                     .club {
                         font-size: 20px;
                         font-weight: bold;
+                        color: #333333;
                         margin-bottom: 10px;
                         position: relative;
 
@@ -352,7 +357,7 @@ const showNews = (news, index) => {
                     .minister {
                         background-color: white;
                         color: rgb(162, 218, 254);
-                        font-weight: bold;
+                        font-weight: normal;
                         width: 60px;
                         height: 25px;
                         line-height: 25px;
@@ -377,12 +382,14 @@ const showNews = (news, index) => {
                     height: 200px;
                     overflow: hidden;
                     margin: 0 auto;
+                    font-weight: 100;
                 }
             }
 
             .button {
                 position: relative;
                 text-align: center;
+                font-weight: 100;
 
                 .time {
                     font-size: 14px;
