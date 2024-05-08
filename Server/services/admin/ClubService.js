@@ -156,27 +156,21 @@ const ClubService = {
     },
     // 更换社长
     ministerChange: async ({ clubid, oldMin, newMin }) => {
+        const minister = await promisePool.query(`SELECT club_name FROM tb_clubs WHERE club_minister=?`, [newMin])
+        if (minister[0].length !== 0) {
+            return { success: false, message: `该成员为 ${minister[0][0]}社长，无法再担任其他社长！` }
+        }
         try {
-            // 开始事务
             await promisePool.query('START TRANSACTION');
-            // 更新 tb_clubs 表中的社团社长为新社长的 id
             await promisePool.query('UPDATE tb_clubs SET club_minister=? WHERE club_id=?', [newMin, clubid]);
-            // 更新 tb_users 表中新社长的角色为 1
             await promisePool.query('UPDATE tb_users SET role=1 WHERE userid=?', [newMin]);
-            // 更新 tb_clubmembers 表中新社长的角色为 1
             await promisePool.query('UPDATE tb_clubmembers SET user_role=1 WHERE userid=? and club_id=?', [newMin, clubid]);
-            // 更新 tb_users 表中旧社长的角色为 0
             await promisePool.query('UPDATE tb_users SET role=0 WHERE userid=?', [oldMin]);
-            // 更新 tb_clubmembers 表中旧社长的角色为 0
             await promisePool.query('UPDATE tb_clubmembers SET user_role=0 WHERE userid=? and club_id=?', [oldMin, clubid]);
-            // 提交事务
             await promisePool.query('COMMIT');
-            // 返回成功信息或其他结果
             return { success: true, message: '操作成功' };
         } catch (error) {
-            // 如果出现错误，回滚事务
             await promisePool.query('ROLLBACK');
-            // 返回错误信息
             return { success: false, message: '操作失败', error };
         }
     },

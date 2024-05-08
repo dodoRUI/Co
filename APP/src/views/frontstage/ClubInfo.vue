@@ -5,7 +5,7 @@
                 <div class="avatar">
                     <div class="popularity">
                         <i class="iconfont icon-renqi" @click="clubVote"></i>
-                        <span>{{ clubinfo.club_star }}</span>
+                        <span>{{ clubinfo?.club_star }}</span>
                     </div>
                     <img :src="'http://localhost:3000/' + clubinfo.club_avatar">
                 </div>
@@ -26,7 +26,7 @@
                 </div>
             </div>
         </div>
-        <div class="content">
+        <div class="content" v-show="!showMembers">
             <div class="news">
                 <div class="title">最新资讯</div>
                 <div class="data">
@@ -56,7 +56,7 @@
                 </div>
             </div>
             <div class="members">
-                <div class="title">成员概况</div>
+                <div class="title" @click="showAllMembers">成员概况</div>
                 <div class="data">
                     <div class="total">
                         <el-progress type="circle" :percentage="total / 97 * 100" status="success">
@@ -140,7 +140,57 @@
                 </div>
             </div>
         </div>
-        <!-- 详情 -->
+        <div class="all-members" v-show="showMembers">
+            <div class="title" @click="showMembers = !showMembers">全体成员</div>
+            <ul>
+                <li v-for="item in memberList" :key="item.userid" :class="item.gender === 1 ? 'male' : 'female'"
+                    @click="showMemberInfo(item)">
+                    <div class="mask"></div>
+                    <img :src="'http://localhost:3000/' + item.avatar">
+                    <div class="name">{{ item.username }}</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 个人信息卡片 -->
+        <el-drawer v-model="memberDrawer" :with-header="false" class="member-drawer" direction="ltr">
+            <div
+                :class="{ 'usercard': true, 'male-card': memberInfo.gender == 1, 'female-card': memberInfo.gender == 0 }">
+                <div class="card-header">
+                    <img
+                        :src="memberInfo.avatar ? 'http://localhost:3000' + memberInfo.avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'">
+                </div>
+                <div class="card-center">
+                    <div class="id">ID：{{ memberInfo.userid }}</div>
+                    <div class="name">
+                        <span>
+                            <i v-if="memberInfo.gender === 1" class="iconfont icon-xingbie_nan"
+                                style="color: rgb(0, 145, 255);"></i>
+                            <i v-if="memberInfo.gender === 0" class="iconfont icon-xingbie_nv"
+                                style="color: rgb(255, 77, 148);"></i>
+                            {{ memberInfo.username }}
+                        </span>
+                    </div>
+                    <div class="major" v-show="memberInfo.institute">
+                        <span
+                            :style="memberInfo.gender == 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
+                                memberInfo.institute }}</span>
+                        <div>{{ memberInfo.major }} 丨 {{ memberInfo.classid }}</div>
+                    </div>
+                    <div class="member-profile">
+                        <div class="profile-title">个人简介</div>
+                        <div class="profile-content">
+                            {{ memberInfo.profile }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    SWUST COMMUNITY
+                </div>
+            </div>
+        </el-drawer>
+
+        <!-- 资讯详情 -->
         <el-drawer v-model="news_drawer" :with-header="false" direction="rtl" class="drawer">
             <div class="news-drawer__title">
                 {{ clubinfo.news?.news_title }}
@@ -218,12 +268,30 @@ onMounted(async () => {
 
 // 获取该社团信息
 const getClubData = async (id) => {
-    const userid = store.userInfo.userid ? store.userInfo.userid : '000'
+    const userid = store.userInfo.userid ? store.userInfo.userid : '1234567890'
     const res = await axios.get(`/frontapi/show/clubs/clubinfo/${id}/${userid}`)
+    console.log(res.data)
     clubinfo.value = res.data.data
     setTimeout(() => {
         total.value = clubinfo.value.members
     }, 600)
+}
+
+// 展示所有成员
+const showMembers = ref(false)
+const memberList = ref([])
+const showAllMembers = async () => {
+    showMembers.value = true
+    const res = await axios.get(`/frontapi/show/clubmembers/${route.query.id}`)
+    memberList.value = res.data.data
+}
+
+// 展示成员信息卡片
+const memberDrawer = ref(false)
+const memberInfo = ref({})
+const showMemberInfo = (member) => {
+    memberDrawer.value = true
+    memberInfo.value = member
 }
 
 // 下载文件
@@ -319,7 +387,7 @@ const clubVote = async () => {
             } else {
                 ElNotification({
                     title: '投票失败',
-                    type:'error',
+                    type: 'error',
                     message: res.data.message,
                 })
             }
@@ -371,6 +439,14 @@ const clubVote = async () => {
         }
     }
 
+}
+
+.male {
+    background: linear-gradient(-45deg, rgba(64, 158, 255, 0.3), rgba(85, 231, 252, 0.3));
+}
+
+.female {
+    background: linear-gradient(-45deg, rgba(123, 90, 255, 0.2), rgba(255, 91, 181, 0.2));
 }
 
 .root {
@@ -545,6 +621,111 @@ const clubVote = async () => {
         }
     }
 
+    .all-members {
+        width: 100%;
+        height: calc(100vh - 400px);
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+
+        .title {
+            font-size: 25px;
+            font-weight: 100;
+            width: 120px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            margin-top: 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            color: #3e3e3e;
+
+            &:hover {
+                border: 2px solid #ccc;
+            }
+
+            &:active {
+                transform: scale(0.95);
+            }
+        }
+
+        ul {
+            width: 100%;
+            height: calc(100% - 62px);
+            box-sizing: border-box;
+            padding: 5px 0 20px 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            list-style: none;
+            overflow-y: auto;
+
+            &::-webkit-scrollbar {
+                width: 5px;
+                background-color: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                width: 10px;
+                background: rgba($color: #000, $alpha: 0.2);
+                border-radius: 5px;
+            }
+
+            li {
+                width: 110px;
+                height: 60px;
+                border-radius: 10px;
+                position: relative;
+                display: flex;
+                padding-left: 10px;
+                align-items: center;
+                margin-bottom: 10px;
+                margin-right: 10px;
+                font-weight: 100;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                user-select: none;
+
+                &:hover {
+                    transform: scale(1.05);
+
+                    .mask {
+                        background-color: transparent;
+                    }
+                }
+
+                &:active {
+                    transform: scale(0.95);
+                }
+
+                img {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 25px;
+                    margin-right: 10px;
+                    z-index: 2;
+                }
+
+                .name {
+                    z-index: 2;
+                }
+
+                .mask {
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                    left: 0;
+                    border-radius: 10px;
+                    background-color: white;
+                    transition: all 0.2s ease;
+                }
+            }
+        }
+    }
+
     .content {
         height: calc(100vh - 400px);
         width: 100%;
@@ -607,13 +788,35 @@ const clubVote = async () => {
             transition: all 0.5s ease;
             transform: translateY(500px);
 
+            .title {
+                position: relative;
+                top: -8px;
+                width: 120px;
+                height: 50px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: all 0.3s ease;
+                box-sizing: border-box;
+                cursor: pointer;
+                user-select: none;
+
+                &:hover {
+                    border: 2px solid #ccc;
+                }
+
+                &:active {
+                    transform: scale(0.95);
+                }
+            }
+
             .data {
                 width: 100%;
                 flex: 1;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-
+                margin-top: -20px;
 
                 .total {
                     width: 100%;
@@ -878,6 +1081,152 @@ const clubVote = async () => {
         bottom: 20px;
         left: 20px;
         font-size: 12px;
+    }
+}
+
+.female-card {
+    background: linear-gradient(45deg, #a58fff, #ff8fcd);
+}
+
+.male-card {
+    background: linear-gradient(45deg, #6395ff, #8df0ff);
+}
+
+:deep(.member-drawer) {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    .el-drawer__body {
+        padding: 0 !important;
+        padding-left: 20px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .usercard {
+        width: 400px;
+        height: 520px;
+        user-select: none;
+        box-sizing: border-box;
+        padding: 20px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
+        color: white;
+        position: relative;
+
+        .card-header {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+
+            img {
+                width: 150px;
+                height: 150px;
+                border: 2px solid white;
+                border-radius: 100px;
+            }
+        }
+
+        .card-center {
+            .id {
+                text-align: center;
+                font-size: 14px;
+                font-weight: 100;
+            }
+
+            .name {
+                margin-top: 10px;
+                text-align: center;
+
+                span {
+                    padding: 0;
+                    font-size: 35px;
+                    line-height: 35px;
+                    text-align: center;
+                    font-weight: 600;
+                    position: relative;
+
+                    i {
+                        margin: 0;
+                        position: absolute;
+                        top: 10px;
+                        left: -35px;
+                        font-size: 25px;
+                    }
+                }
+            }
+
+            .major {
+                padding: 0;
+                margin-top: 15px;
+                text-align: center;
+                font-size: 18px;
+                line-height: 20px;
+
+                span {
+                    padding: 2px;
+                    font-weight: 500;
+                    font-size: 12px;
+                    line-height: 20px;
+                    background-color: white;
+                    border-radius: 5px;
+                    color: rgb(118, 189, 255);
+                }
+
+                div {
+                    margin-top: 10px;
+                }
+            }
+
+            .member-profile {
+                margin-top: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .profile-title {
+                    width: 95%;
+                    text-align: center;
+                    color: rgba(255, 255, 255, 0.7);
+                    padding-bottom: 5px;
+                    border-bottom: 1px solid white;
+                    font-size: 14px;
+                }
+
+                .profile-content {
+                    width: 90%;
+                    height: 100px;
+                    margin-top: 10px;
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                    text-indent: 2em;
+                    overflow: auto;
+
+                    &::-webkit-scrollbar {
+                        width: 5px;
+                        background-color: transparent;
+                    }
+
+                    &::-webkit-scrollbar-thumb {
+                        width: 10px;
+                        background: rgba(255, 255, 255, 0.5);
+                        border-radius: 5px;
+                    }
+                }
+            }
+        }
+
+        .card-footer {
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            font-size: 35px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+        }
     }
 }
 </style>

@@ -27,21 +27,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 // token刷新
 app.use((req, res, next) => {
   // 排除login相关路由和接口，否则会一直重定向陷入循环
-  if (req.url.includes("login")||req.url.includes("front")) {
+  if (req.url.includes("login") || req.url.includes("front")) {
     next()
     return
   }
-
   const token = req.headers.authorization?.split(" ")[1]  // 这里authorization首字母必须小写，因为接收到所有的req请求头属性都会变成小写
   if (token) {
     const payload = JWT.verify(token)
     if (payload) {
       // 重新计算token过期时间
       const newToken = JWT.generate({
-        id: payload.id,
-
+        userid: payload.userid,
         username: payload.username,
+        role: payload.role,
         password: payload.password,
+        club_id: payload.club_id
       }, "1h")
       res.header("authorization", newToken)
       next()

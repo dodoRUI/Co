@@ -513,6 +513,7 @@ const showAllClubList = computed(() => {
                 list-style: none;
                 display: flex;
                 flex-wrap: wrap;
+                justify-content: center;
                 box-sizing: border-box;
                 overflow-y: scroll;
                 padding: 20px;

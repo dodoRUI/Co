@@ -4,18 +4,24 @@ const promisePool = mysql2.createPool(dbConfig).promise()
 const dateTime = require("../../utils/dateTime")
 const fs = require('fs')
 const path = require('path')
+const BCRYPT = require('../../utils/BCRYPT')
+const JWT = require("../../utils/JWT")
 
 const UserService = {
     // 登录验证
     login: async ({ userid, password, stage }) => {
-        const tip = stage ? 'and (role=9 or role=1)' : ''
         try {
-            var user = await promisePool.query(`select * from tb_users where userid=? and password=? ${tip}`, [userid, password])
-            if (user[0][0] && user[0][0].role == 1) {
-                const clubid = await promisePool.query(`select club_id from tb_clubs where club_minister=?`, [userid])
-                user[0][0].club_id = clubid[0][0].club_id
+            const tip = stage ? 'and (role=9 or role=1)' : ''
+            const user = await promisePool.query(`select * from tb_users where userid=? ${tip}`, [userid])
+            if (user[0][0]&&BCRYPT.compare(password, user[0][0].password)) {
+                if (user[0][0].role == 1) {
+                    const clubid = await promisePool.query(`select club_id from tb_clubs where club_minister=?`, [userid])
+                    user[0][0].club_id = clubid[0][0].club_id
+                }
+                return user[0]
+            }else{
+                return []
             }
-            return user[0]
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
@@ -33,14 +39,14 @@ const UserService = {
     register: async (user) => {
         try {
             const { userid, password, classid } = user
+            const pwd = BCRYPT.encrypt(password)
             const institute = user.instituteMajor[0]
             const major = user.instituteMajor[1]
-            await promisePool.query(`insert into tb_users(userid,username,password,classid,institute,major,role) values(?,?,?,?,?,?,?)`, [userid, 'Nobody', password, classid, institute, major, 0])
+            await promisePool.query(`insert into tb_users(userid,username,password,classid,institute,major,role) values(?,?,?,?,?,?,?)`, [userid, 'Nobody', pwd, classid, institute, major, 0])
             return { success: true, message: '注册成功！' }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
-
     },
     // 修改个人信息
     updateUser: async ({ userid, username, profile, gender, avatar }) => {
@@ -50,16 +56,22 @@ const UserService = {
             } else {
                 await promisePool.query(`update tb_users set username=?,profile=?,gender=? where userid=?`, [username, profile, gender, userid])
             }
-            return { success: true, message: '修改成功！' }
+            return { success: true, message: '修改成功！',data:{userid:userid, username:username, profile:profile, gender:gender, avatar:avatar} }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
     // 修改个人密码
-    changePassword: async ({ userid, password, newpassword }) => {
+    changePassword: async ({ userid, oldPass, newPass },authorization) => {
         try {
-            await promisePool.query(`update tb_users set password=? where userid=? and password=?`, [newpassword, userid, password])
-            return { success: true, message: '修改成功！' }
+            const PASSWORD = JWT.verify(authorization.split(' ')[1]).password
+            if (BCRYPT.compare(oldPass, PASSWORD)) {
+                const NEWpass = BCRYPT.encrypt(newPass)
+                await promisePool.query(`update tb_users set password=? where userid=?`, [NEWpass, userid])
+                return { success: true, message: '密码修改成功!' }
+            }else{
+                return { success: false, message: '原密码错误！' }
+            }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
@@ -181,5 +193,6 @@ function deleteFile(filePath) {
         console.log('File deleted successfully');
     })
 }
+
 
 module.exports = UserService

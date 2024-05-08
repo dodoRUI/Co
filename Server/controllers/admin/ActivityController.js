@@ -22,14 +22,22 @@ const ActivityController = {
         res.send(result)
     },
     // 筛选活动
-    actvtFilter:async(req,res)=>{
+    actvtFilter: async (req, res) => {
         const result = await ActivityService.actvtFilter(req.query)
         res.send(result)
     },
     // 删除活动
-    activityDelete:async(req,res)=>{
-        const result = await ActivityService.activityDelete(req.query.actvt)
+    activityDelete: async (req, res) => {
+        const result = await ActivityService.activityDelete(req.body)
         res.send(result)
+    },
+    // 下载活动报名表
+    downloadForm: async (req, res) => {
+        const data = await ActivityService.downloadForm(req.query.id)
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename="students.xlsx"');
+        res.send(data)
     }
 }
 

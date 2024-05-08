@@ -55,9 +55,9 @@
                         <div v-else><el-tag type="primary" round>未开始</el-tag></div>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作">
+                <el-table-column label="操作" width="200px">
                     <template #default="scope">
-                        <el-button type="primary" plain circle @click="showDetail(scope.row)" :icon="List"></el-button>
+                        <el-button type="primary" plain round @click="downloadSignUpForm(scope.row)" :icon="List">报名表</el-button>
                         <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
                             cancel-button-text="取消" confirm-button-type="danger" @confirm="actvtDelete(scope.row)">
                             <template #reference>
@@ -180,6 +180,17 @@ const shortcuts = [
         }
     }
 ]
+
+// 下载报名表
+const downloadSignUpForm = async (actvt)=>{
+    const res = await axios.get(`/adminapi/activities/download`,{ params: {id:actvt.activity_id}, responseType: "blob" })
+    const url = URL.createObjectURL(res.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `${actvt.activity_name}报名表`)
+    link.click()
+    URL.revokeObjectURL(url)
+}
 
 // 删除活动
 const actvtDelete = async (actvt) => {

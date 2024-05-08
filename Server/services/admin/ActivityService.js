@@ -4,6 +4,7 @@ const promisePool = mysql2.createPool(dbConfig).promise()
 const dateTime = require("../../utils/dateTime")
 const fs = require('fs')
 const path = require('path')
+const ExcelJS = require('exceljs')
 
 const ActivityService = {
     // 新增活动时，选择社团。该接口负责返回所有社团名称及其ID
@@ -84,6 +85,35 @@ const ActivityService = {
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
+    },
+    // 下载活动报名表
+    downloadForm: async (id) => {
+        const registration = await promisePool.query(`select registration from tb_activities where activity_id=?`, [id])
+        const registers = registration[0][0].registration.slice(1, -1)
+        const registersList = await promisePool.query(`select userid,username,institute,major,classid from tb_users where userid in (${registers})`)
+
+        // 创建一个新的工作簿
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('报名表');
+        // 添加表头
+        worksheet.columns = [
+            { header: '学号', key: 'userid', width: 12 },
+            { header: '姓名', key: 'username', width: 10 },
+            { header: '学院', key: 'institute', width: 22 },
+            { header: '专业', key: 'major', width: 25 },
+            { header: '班级', key: 'classid', width: 8 }
+        ];
+
+        // 将数据添加至表格中
+        registersList[0].forEach(item => {
+            worksheet.addRow(item)
+        })
+
+        // 将工作簿写入文件
+        const filePath = path.join(__dirname,`students.xlsx`);
+        await workbook.xlsx.writeFile(filePath)
+        const data = fs.readFileSync(filePath)
+        return data
     },
 }
 

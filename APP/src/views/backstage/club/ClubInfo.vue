@@ -185,7 +185,7 @@ const submitMinister = async (minister) => {
     })
     ElNotification({
         title: res.data.success ? '操作成功' : '操作失败',
-        message: res.data.success ? `${minister.username} 已成为 ${clubInfo.value.club_name}新社长` : '服务器出错，换任失败',
+        message: res.data.success ? `${minister.username} 已成为 ${clubInfo.value.club_name}新社长` : res.data.message,
         type: res.data.success ? 'success' : 'error'
     })
     changeMinister.value = false

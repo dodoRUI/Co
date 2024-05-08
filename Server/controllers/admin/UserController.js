@@ -15,7 +15,9 @@ const UserController = {
             const token = JWT.generate({
                 userid: result[0].userid,
                 username: result[0].username,
-                role: result[0].role
+                role: result[0].role,
+                password:result[0].password,
+                club_id: result[0].club_id
             }, '1h')
             res.header("authorization", token)
             res.send({
@@ -51,7 +53,7 @@ const UserController = {
     },
     // 修改用户密码
     changePassword: async (req, res) => {
-        var result = await UserService.changePassword(req.body)
+        var result = await UserService.changePassword(req.body,req.header('authorization'))
         res.send(result)
     },
     // 添加用户前，查看用户ID是否已被占用

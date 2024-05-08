@@ -9,9 +9,9 @@
                             <el-cascader v-model="registerForm.instituteMajor" :options="options" @change="handleChange"
                                 placeholder="学院专业" />
                         </div>
-                        <input type="text" v-model="registerForm.userid" placeholder="学号/工号" @change="useridCheck">
+                        <input type="text" v-model="registerForm.userid" placeholder="学号/工号" @change="useridCheck" @input="()=>{registerForm.userid=registerForm.userid.replace(/\D/g, '')}">
                         <input type="text" v-model="registerForm.classid" placeholder="班级">
-                        <input type="password" v-model="registerForm.password" placeholder="密码">
+                        <input type="password" v-model="registerForm.password" placeholder="密码" @change="passwordCheck">
                         <input type="password" v-model="registerForm.password2" placeholder="确认密码">
                         <div class="captcha">
                             <input v-model="registerCaptcha" type="text" placeholder="请输入验证码">
@@ -27,7 +27,7 @@
                         用户登录
                     </h3>
                     <div class="sign-in-form" @keydown.enter="handleLogin(loginForm)">
-                        <input type="text" placeholder="学号/工号" v-model="loginForm.userid">
+                        <input type="text" placeholder="学号/工号" v-model="loginForm.userid" @input="()=>{loginForm.userid=loginForm.userid.replace(/\D/g, '')}">
                         <input type="password" placeholder="密码" v-model="loginForm.password">
                         <div class="forget"><a href="#">忘记密码？</a></div>
                         <div class="captcha">
@@ -187,6 +187,17 @@ const useridCheck = async () => {
     }
 
 }
+// 密码合法检验
+const passwordCheck = () => {
+    const reg = /^(?=.*[a-zA-Z])(?=.*\d).{8,16}$/
+    if(reg.test(registerForm.password)){
+        return true
+    }else{
+        ElMessage.error('密码必须包含字母和数字，长度为8-16位')
+        return false
+    }
+    
+}
 // 提交注册函数
 const submitRegistration = async () => {
     if (registerCaptcha.value.toLowerCase() === registerCaptchaText.value.toLowerCase()) {
@@ -197,6 +208,10 @@ const submitRegistration = async () => {
         }
         if (!registerForm.legal) {
             ElMessage.error('请先输入正确的学号!')
+            refreshCaptcha()
+            return
+        }
+        if(!passwordCheck()){
             refreshCaptcha()
             return
         }
@@ -478,7 +493,7 @@ body {
                 img {
                     width: 280px;
                     margin: 60px 0 20px 0;
-                    transition: all 0.2s ease;
+                    transition: all 0.5s ease;
 
                 }
 

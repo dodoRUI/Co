@@ -144,7 +144,7 @@ function checkNewPwd() {
     pwdForm.blur1 = true
     var reg = /^(?=.*[a-zA-Z])(?=.*\d).+$/
     var regLegal = reg.test(pwdForm.newPwd)
-    if (pwdForm.newPwd.length >= 8 && pwdForm.newPwd.length <= 14 && regLegal) {
+    if (pwdForm.newPwd.length >= 8 && pwdForm.newPwd.length <= 16 && regLegal) {
         pwdForm.isLegal = true
     } else {
         pwdForm.isLegal = false
@@ -161,10 +161,10 @@ function changePassword(pwdForm) {
     if (pwdForm.isLegal && pwdForm.isSame) {
         axios.post('/adminapi/users/changepassword', {
             userid,
-            password: pwdForm.oldPwd,
-            newpassword: pwdForm.newPwd,
+            oldPass: pwdForm.oldPwd,
+            newPass: pwdForm.newPwd,
         }).then(res => {
-            if (res.data.ActionType === 'OK') {
+            if (res.data.success) {
                 ElMessage({
                     message: '修改成功！请您重新登录',
                     type: 'success',
@@ -229,7 +229,7 @@ function handleReset() {
 // 修改信息提交请求
 async function submitForm(userForm) {
     var res = await upload('/adminapi/users/upload', userForm)
-    if (res.ActionType === 'OK') {
+    if (res.success) {
         // 修改完成后，需要重新改写持久化的userInfo
         store.addUserInfo(res.data)
         ElMessage({

@@ -36,7 +36,8 @@
                     <el-timeline-item v-for="item in actvtList" :timestamp="`${item.activity_start}`" placement="top"
                         :color="new Date(item.activity_end) > new Date() ? new Date(item.activity_start) < new Date() ? '#ffa500' : '#15a8ff' : '#909399'"
                         size="large">
-                        <el-card shadow="hover" :class="{ 'myclubactvt': actvtType == 'myclubs' }">
+                        <el-card shadow="hover" :class="{ 'myclubactvt': actvtType == 'myclubs' }"
+                            @click="showActvtDetail(item)">
                             <div class="title">
                                 <h3>{{ item.activity_name }}
                                     <el-tag round effect="plain"
@@ -55,15 +56,21 @@
                                 <div class="time"><span>举办时间：</span>{{ item.activity_start }} 至 {{ item.activity_end }}
                                 </div>
                                 <div class="place"><span>举办地点：</span>{{ item.activity_place }}</div>
-                                <div class="num"><span>期待人数：</span><i class="iconfont icon-shetuan"></i>
-                                    {{ item.expectation.score == 0 ? '暂无' : Object.keys(item.expectation.users).length
-                                    }}</div>
+                                <div class="num">
+                                    <span>报名人数：</span>
+                                    <i class="iconfont icon-shetuan"></i>
+                                    {{ item.registration ? item.registration.length / 11 : 0 }}
+                                </div>
                             </div>
                             <div class="club">
-                                <div class="left" @click="showActvtDetail(item)">
+                                <div class="left" v-show="new Date(item.activity_start) > new Date()">
                                     <div class="bg"></div>
-                                    <div>
-                                        <span>查看</span>
+                                    <div v-if="item.registration && item.registration.includes(store.userInfo.userid)"
+                                        @click="actvtCancel(item)">
+                                        <span>已报名</span>
+                                    </div>
+                                    <div v-else @click="actvtSignUp(item)">
+                                        <span>报名</span>
                                         <el-icon>
                                             <ArrowRight />
                                         </el-icon>
@@ -86,7 +93,8 @@
                     </el-timeline-item>
                 </el-timeline>
             </div>
-            <div :class="{ 'bgtext': true, 'bgtext-mounted': isMounted }" :style="actvtDetailCard.activity_id?'color:white':''">
+            <div :class="{ 'bgtext': true, 'bgtext-mounted': isMounted }"
+                :style="actvtDetailCard.activity_id ? 'color:white' : ''">
                 <div class="cn">发现激情，创造回忆，一起点燃校园生活的火花！</div>
                 <div class="en">Discover passion, create memories, and ignite the sparks of campus life together!</div>
             </div>
@@ -265,6 +273,50 @@ const downloadFile = async () => {
     link.setAttribute('download', actvtDetailCard.value.activity_file.filename)
     link.click()
     URL.revokeObjectURL(url)
+}
+
+// 活动报名
+const actvtSignUp = async (activity) => {
+    if (store.userInfo.userid) {
+        const userid = store.userInfo.userid
+        const res = await axios.post('/frontapi/activity/signup', { activity_id: activity.activity_id, userid })
+        if (res.data.success) {
+            ElNotification.success({
+                title: '报名成功！',
+                message: `你已成功报名 ${activity.activity_name}，请关注开始时间`,
+                duration: 3000
+            })
+        } else {
+            ElNotification.error({
+                title: '报名失败！',
+                message: res.data.message,
+                duration: 3000
+            })
+        }
+        await getActivities()
+    }else{
+        ElMessage.info('点击右上角登录后，即可参与报名')
+    }
+
+}
+// 取消报名
+const actvtCancel = async (activity) => {
+    const userid = store.userInfo.userid
+    const res = await axios.post('/frontapi/activity/cancel', { activity_id: activity.activity_id, userid })
+    if (res.data.success) {
+        ElNotification.success({
+            title: '取消成功！',
+            message: `你已取消报名 ${activity.activity_name}`,
+            duration: 3000
+        })
+    } else {
+        ElNotification.error({
+            title: '取消失败！',
+            message: res.data.message,
+            duration: 3000
+        })
+    }
+    await getActivities()
 }
 </script>
 
@@ -536,6 +588,8 @@ const downloadFile = async () => {
 
                         .club {
                             display: flex;
+                            height: 40px;
+                            position: relative;
                             justify-content: space-between;
                             font-weight: 100;
 
@@ -585,6 +639,8 @@ const downloadFile = async () => {
 
                             .right {
                                 display: flex;
+                                position: absolute;
+                                right: 0;
                                 align-items: center;
                                 justify-content: end;
 

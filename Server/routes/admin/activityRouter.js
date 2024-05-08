@@ -18,6 +18,8 @@ activityRouter.post("/adminapi/activities/addactivity",activityUpload.fields([
   ]),ActivityController.activityAdd)
 // 删除活动
 activityRouter.delete("/adminapi/activities/delete",ActivityController.activityDelete)
+// 下载活动报名表
+activityRouter.get("/adminapi/activities/download",ActivityController.downloadForm)
 
 
 

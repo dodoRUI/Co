@@ -4,6 +4,8 @@ const promisePool = mysql2.createPool(dbConfig).promise()
 const dateTime = require("../../utils/dateTime")
 const fs = require('fs')
 const path = require('path')
+const JWT = require("../../utils/JWT")
+const BCRYPT = require("../../utils/BCRYPT")
 
 const FrontService = {
     clubNewsGet: async (page) => {
@@ -51,11 +53,12 @@ const FrontService = {
             return { success: false, message: '服务器出错，请稍后再试！' }
         }
     },
-    userPasswordUpdate: async ({ oldpass, newpass, userid }) => {
+    userPasswordUpdate: async ({ oldpass, newpass, userid }, authorization) => {
         try {
-            const PASSWORD = await promisePool.query(`select password from tb_users where userid=?`, [userid])
-            if (PASSWORD[0][0].password === oldpass) {
-                await promisePool.query(`update tb_users set password=? where userid=?`, [newpass, userid])
+            const PASSWORD = JWT.verify(authorization.split(" ")[1]).password
+            if (BCRYPT.compare(oldpass, PASSWORD)) {
+                const NEWpass = BCRYPT.encrypt(newpass)
+                await promisePool.query(`update tb_users set password=? where userid=?`, [NEWpass, userid])
                 return { success: true, message: '密码修改成功!' }
             } else {
                 return { success: false, message: '原密码错误！' }
@@ -101,6 +104,27 @@ const FrontService = {
         const data = fs.readFileSync(filePath)
         return data
     },
+    // 活动报名
+    actvtSignUp: async ({ userid, activity_id }) => {
+        try {
+            await promisePool.query(`update tb_activities SET registration = CASE WHEN registration IS NULL THEN '${userid},' ELSE CONCAT(registration, '${userid},') END where activity_id = ${activity_id}`)
+            return { success: true, message: '报名成功！' }
+        } catch (error) {
+            return { success: false, message: '报名失败！' }
+        }
+
+    },
+    // 取消报名
+    actvtCancel: async ({ userid, activity_id }) => {
+        try {
+            let res = await promisePool.query(`select registration from tb_activities where activity_id = ?`, [activity_id])
+            registration = res[0][0].registration.replace(`${userid},`, '')
+            await promisePool.query(`update tb_activities set registration = ? where activity_id = ?`, [registration, activity_id])
+            return { success: true, message: '取消成功！' }
+        } catch (error) {
+            return { success: false, message: '服务器出错！' }
+        }
+    },
 
     // 获取所有社团数据
     top10ClubsGet: async () => {
@@ -127,12 +151,19 @@ const FrontService = {
             dateTime.dateTimeFormat(news[0], 'edit_time')
             let data = {
                 ...club[0][0], minister: minister[0][0], actvt: actvties[0][0], news: news[0][0],
-                applyState: application[0].length, isMember: member[0].length, todayVote: vote[0][0].vote
+                applyState: application[0].length, isMember: member[0].length, todayVote: vote[0][0]?.vote
             }
             return { success: true, data: data }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！' }
         }
+    },
+    // 获取社团全体成员信息
+    clubsMembersGet: async (clubid) => {
+        let res = await promisePool.query(`select userid from tb_clubmembers where club_id = ${clubid}`)
+        res = res[0].map(item => item.userid).join(',')
+        const members = await promisePool.query(`select userid,username,profile,gender,avatar,institute,major,classid from tb_users where userid in (${res})`)
+        return { success: true, data: members[0] }
     },
     applyClub: async ({ apply_club, apply_user, apply_text, apply_time }) => {
         try {

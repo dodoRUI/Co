@@ -34,5 +34,4 @@ userRouter.put("/adminapi/users/userlist/:userid",UserController.userUpdate)
 // 查看用户的社团
 userRouter.get("/adminapi/clubmembers/user/:userid",UserController.getUserClubs)
 
-
 module.exports = userRouter;

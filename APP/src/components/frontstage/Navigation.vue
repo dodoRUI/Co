@@ -311,7 +311,6 @@ const resetForm = (form) => {
                 box-sizing: border-box;
 
                 &:hover {
-                    transform: scale(1.05);
                     height: 60px;
                     border-radius: 50%;
                     line-height: 60px;

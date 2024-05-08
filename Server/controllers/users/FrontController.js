@@ -18,7 +18,7 @@ const FrontController = {
         res.send(result)
     },
     userPasswordUpdate: async (req, res) => {
-        const result = await FrontService.userPasswordUpdate(req.body);
+        const result = await FrontService.userPasswordUpdate(req.body,req.header('authorization'));
         res.send(result)
     },
 
@@ -42,6 +42,16 @@ const FrontController = {
         const data = await FrontService.downloadFile(req.query.filepath)
         res.send(data)
     },
+    // 活动报名
+    actvtSignUp:async(req,res)=>{
+        const result = await FrontService.actvtSignUp(req.body)
+        res.send(result)
+    },
+    // 取消报名
+    actvtCancel:async(req,res)=>{
+        const result = await FrontService.actvtCancel(req.body)
+        res.send(result)
+    },
 
     // 获取十佳社团
     votesRankGet:async(req,res)=>{
@@ -52,6 +62,11 @@ const FrontController = {
     // 获取社团信息
     clubInfoGet:async(req,res)=>{
         const result = await FrontService.clubInfoGet(req.params.clubid,req.params.userid);
+        res.send(result)
+    },
+    // 获取社团全体成员信息
+    clubMembersGet:async(req,res)=>{
+        const result = await FrontService.clubsMembersGet(req.params.clubid);
         res.send(result)
     },
     // 申请加入社团
