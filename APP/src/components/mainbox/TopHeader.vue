@@ -44,7 +44,7 @@ function logOut(){
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .el-header {
     user-select: none;
     margin: 0;
