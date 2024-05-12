@@ -28,7 +28,7 @@
                         <span
                             :style="userinfo.gender == 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
                                 userinfo.institute }}</span>
-                        <div>{{ userinfo.major }} 丨 {{ userinfo.classid }}</div>
+                        <div v-if="userinfo.major">{{ userinfo.major }} 丨 {{ userinfo.classid }}</div>
                     </div>
                     <div class="profile">
                         <div class="title">个人简介</div>

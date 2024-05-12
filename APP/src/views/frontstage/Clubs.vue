@@ -104,10 +104,10 @@
                                         item.club_name }}</div>
                                 <div class="slogan">
                                     <div class="cn">
-                                        <div class="cn-content">{{ item.club_slogan.split('\\')[0] }}</div>
+                                        <div class="cn-content">{{ item.club_slogan?.split('\\')[0] }}</div>
                                         <div class="divide"></div>
                                     </div>
-                                    <div class="en">{{ item.club_slogan.split('\\')[1] }}</div>
+                                    <div class="en">{{ item.club_slogan?.split('\\')[1] }}</div>
                                 </div>
                                 <div class="avatar">
                                     <img :src="'http://localhost:3000/' + item.club_avatar">
@@ -168,6 +168,7 @@ const allClubsList = ref([])
 const getData = async () => {
     const res = await axios.get('/frontapi/show/votesrank')
     allClubsList.value = [...res.data.data]
+    console.log(allClubsList.value)
     const data = res.data.data.sort((a, b) => b.club_star - a.club_star)
     top10List.value = data.slice(0, 10)
 

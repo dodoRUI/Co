@@ -11,7 +11,9 @@ clubRouter.get("/adminapi/clubs/clublist",ClubController.clubListGet)
 // 搜索社团
 clubRouter.get("/adminapi/clubs/clublist/search",ClubController.clubSearch)
 // 分配社长查看社长ID是否合法
-clubRouter.get("/adminapi/clubs/addclub/:userid",ClubController.checkMinister)
+clubRouter.get("/adminapi/clubs/addclub/minister/:userid",ClubController.checkMinister)
+// 分配指导老师查看指导老师ID是否合法
+clubRouter.get("/adminapi/clubs/addclub/leader/:userid",ClubController.checkLeader)
 // 新增社团
 clubRouter.post("/adminapi/clubs/addclub",clubUpload.single('file'),ClubController.clubAdd)
 // 删除社团
@@ -33,6 +35,10 @@ clubRouter.get("/adminapi/clubs/clubinfo/:club_id",ClubController.clubInfoGet)
 clubRouter.delete("/adminapi/clubs/deletemember/:clubid/:userid",ClubController.memberDelete)
 // 修改社团社长
 clubRouter.put("/adminapi/clubs/changeminister",ClubController.ministerChange)
+// 查询指导老师
+clubRouter.get(`/adminapi/clubs/leaderinfo/:id`,ClubController.leaderSearch)
+// 更换指导老师
+clubRouter.post('/adminapi/clubs/leaderchange',ClubController.leaderChange)
 // 修改社团信息
 clubRouter.post("/adminapi/clubs/clubinfo/update",clubUpload.fields([{name:'file'},{name:'file1'}]),ClubController.clubUpdate)
 

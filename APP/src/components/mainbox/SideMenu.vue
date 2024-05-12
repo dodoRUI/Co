@@ -28,6 +28,7 @@
                     </template>
                     <el-menu-item index="/backstage/activity/activitylist"><span>活动赛事</span></el-menu-item>
                     <el-menu-item index="/backstage/activity/activityadd"><span>创建活动</span></el-menu-item>
+                    <el-menu-item index="/backstage/activity/activitypermit" v-leader><span>活动审核</span></el-menu-item>
                 </el-sub-menu>
                 <el-sub-menu index="/backstage/club">
                     <template #title>
@@ -65,6 +66,13 @@ const store = useHomeStore()
 const vAdmin = {
     mounted(el) {
         if (store.userInfo.role !== 9) {
+            el.parentNode.removeChild(el)
+        }
+    }
+}
+const vLeader = {
+    mounted(el) {
+        if (store.userInfo.role !== 9&&store.userInfo.role !== 5) {
             el.parentNode.removeChild(el)
         }
     }

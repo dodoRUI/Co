@@ -71,7 +71,7 @@ const FrontService = {
     // 获取活动信息
     activitiesGet: async (page) => {
         try {
-            const res = await promisePool.query(`SELECT a.*,c.club_name,c.club_avatar FROM tb_activities AS a JOIN tb_clubs AS c ON a.club_id = c.club_id ORDER BY activity_start`)
+            const res = await promisePool.query(`SELECT a.*,c.club_name,c.club_avatar FROM tb_activities AS a JOIN tb_clubs AS c ON a.club_id = c.club_id where a.permission=1 ORDER BY activity_start`)
             activitiesFormat(res[0])
             return { success: true, data: res[0] }
         } catch (error) {

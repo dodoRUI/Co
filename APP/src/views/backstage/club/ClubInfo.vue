@@ -15,7 +15,7 @@
                             <span class="name">{{ clubInfo.club_name }}</span>
                         </span>
                     </div>
-                    <div class="type"><span>{{ clubType[clubInfo.club_type-1] }}</span></div>
+                    <div class="type"><span>{{ clubType[clubInfo.club_type - 1] }}</span></div>
                     <div class="birth">
                         成立时间：{{ clubInfo.club_birth }}
                     </div>
@@ -29,36 +29,36 @@
                 <div class="memberscard">
                     <h3>
                         <el-button round :plain="!changeMinister" type="primary" style="position: absolute;left: 0;"
-                            @click="() => { changeMinister = !changeMinister }" v-if="store.userInfo.role == 9">
-                            {{ changeMinister ? '取消换任' : '社长换任'
-                            }}</el-button>
+                            @click="() => { changeMinister = !changeMinister }" v-if="store.userInfo.role == 9||store.userInfo.role == 5">
+                            {{ changeMinister ? '取消换任' : '社长换任' }}
+                        </el-button>
+
                         <i class="iconfont icon-shetuan"></i>成员
                         <input type="text" v-model="searchMember" placeholder="查询社员" @input="searchMemberFn">
+
+                        <el-button round plain type="warning" style="position: absolute;right: 0;"
+                            @click="() => { leaderChangeDialog = true }" v-if="store.userInfo.role == 9">
+                            更换指导老师
+                        </el-button>
                     </h3>
                     <ul>
-                        <li class="minister">
-                            <img
-                                :src="minister.avatar ? 'http://localhost:3000' + minister.avatar : 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png'">
-                            <div class="memberinfo">
-                                <div class="userid">{{ minister.userid }}</div>
-                                <div class="username">{{ minister.username }} <span>社长</span></div>
-                                <div class="time">{{ minister.join_time }}</div>
-                            </div>
-                            <div class="changeMinister">
-
-                            </div>
-                        </li>
-                        <li v-for="item in clubMembers" :class="item.gender == 1 ? 'male' : 'female'">
+                        <li v-for="(item, index) in clubMembers"
+                            :class="item.user_role === 5 ? 'leader' : item.user_role === 1 ? item.gender === 1 ? 'minister-male' : 'minister-female' : item.gender === 1 ? 'male' : 'female'"
+                            :key="index">
                             <img
                                 :src="item.avatar ? 'http://localhost:3000' + item.avatar : 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png'">
                             <div class="memberinfo">
                                 <div class="userid">{{ item.userid }}</div>
-                                <div class="username">{{ item.username }}</div>
+                                <div class="username">
+                                    {{ item.username }}
+                                    <span v-if="item.user_role === 5">指导</span>
+                                    <span v-if="item.user_role === 1">社长</span>
+                                </div>
                                 <div class="time">{{ item.join_time }}</div>
                             </div>
                             <div class="delete" v-if="changeMinister == false">
-                                <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000"
-                                    confirm-button-text="删除" cancel-button-text="取消" confirm-button-type="danger"
+                                <el-popconfirm title="确认移除该成员?" :icon="Warning" icon-color="#ff0000"
+                                    confirm-button-text="移除" cancel-button-text="取消" confirm-button-type="danger"
                                     @confirm="deleteMember(item)">
                                     <template #reference>
                                         <el-button type="danger" round>移除</el-button>
@@ -88,13 +88,15 @@
                     <el-input v-model="clubInfo.club_profile" type="textarea" rows="10" resize="none"></el-input>
                 </el-form-item>
                 <el-form-item label="头像与背景">
-                    <el-upload class="avatar-uploader" action="" :show-file-list="false" :auto-upload="false" :on-change="avatarChange">
+                    <el-upload class="avatar-uploader" action="" :show-file-list="false" :auto-upload="false"
+                        :on-change="avatarChange">
                         <img v-show="clubInfo.club_avatar" :src="uploadAvatar" class="avatar" />
                         <el-icon class="avatar-uploader-icon">
                             <Plus />
                         </el-icon>
                     </el-upload>
-                    <el-upload class="bgimg-uploader" action="" :show-file-list="false" :auto-upload="false" :on-change="bgimgChange">
+                    <el-upload class="bgimg-uploader" action="" :show-file-list="false" :auto-upload="false"
+                        :on-change="bgimgChange">
                         <img v-show="clubInfo.club_background" :src="uploadBgimg" class="bgimg" />
                         <el-icon class="avatar-uploader-icon">
                             <Plus />
@@ -111,6 +113,42 @@
                 </div>
             </template>
         </el-dialog>
+        <el-dialog title="更换指导老师" v-model="leaderChangeDialog" width="400px" class="leaderChangeDialog">
+            <div>
+                指导老师工号：
+                <el-input v-model="newLeader.userid" @input="getLeaderInfo" maxlength="10" show-word-limit></el-input>
+            </div>
+            <div>
+                指导老师姓名：
+                <img :src="'http://localhost:3000' + newLeader.avatar" v-show="newLeader.avatar">
+                <span :style="{ 'color': newLeader.gender == 1 ? 'rgb(64,158,255)' : 'rgb(212,143,229)' }">{{
+                    newLeader.username
+                }}</span>
+            </div>
+            <div class="institute">
+                学院：
+                <span class="institute" :style="{ 'border-width': newLeader.username ? '1px' : '0' }">{{
+                    newLeader.institute
+                    }}</span>
+            </div>
+            <div>
+                指导社团：
+                <span>
+                    <span style="font-weight: bold;" v-if="newLeader.club">{{ newLeader.club }}</span>
+                    <span style="font-weight: 100;color: #ccc;" v-else>暂无</span>
+                </span>
+
+            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="leaderChangeDialog = false">取消</el-button>
+                    <el-button type="primary" @click="changeLeader()"
+                        :disabled="newLeader.userid.length !== 10 || newLeader.userid === leader.userid || newLeader.club||newLeader.username==''">
+                        确认更换
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -120,7 +158,7 @@ import axios from 'axios'
 import { useHomeStore } from '@/stores/home'
 import { useRoute, useRouter } from 'vue-router'
 import { ElNotification, ElMessage } from 'element-plus'
-import { Delete, Warning, Search, Plus } from '@element-plus/icons-vue'
+import { Delete, Warning, Plus } from '@element-plus/icons-vue'
 import upload from '@/utils/upload'
 
 const route = useRoute()
@@ -133,6 +171,7 @@ const clubInfo = ref({})
 const membersArr = ref([])
 const searchMember = ref('')
 const minister = ref({})
+const leader = ref({})
 const clubMembers = computed(() => {
     return membersArr.value.filter(item => {
         return item.userid.includes(searchMember.value) || item.username.includes(searchMember.value)
@@ -153,11 +192,15 @@ const getData = async () => {
     let res = await axios.get(`/adminapi/clubs/clubinfo/${store.userInfo.club_id}`)
     if (res.data.success) {
         clubInfo.value = res.data.data.info
-        membersArr.value = res.data.data.members.filter(item => { return item.userid !== clubInfo.value.club_minister })
+        membersArr.value = res.data.data.members
         minister.value = res.data.data.members.filter(item => { return item.userid == clubInfo.value.club_minister })[0]
+        leader.value = res.data.data.members.filter(item => { return item.user_role === 5 }).length ? res.data.data.members.filter(item => { return item.user_role === 5 })[0] : { userid: '', username: '', institute: '', avatar: '', gender: '', club: '' }
+        for(var i in leader.value){
+            newLeader.value[i] = leader.value[i]
+        }
         clubInfo.value.file = null
         clubInfo.value.file1 = null
-    }else{
+    } else {
         ElMessage.error('服务器出错，请稍后再试！')
     }
 
@@ -192,6 +235,43 @@ const submitMinister = async (minister) => {
     getData()
 }
 
+// 更换指导老师
+const leaderChangeDialog = ref(false)
+const newLeader = ref({})
+const changeLeader = async () => {
+    const res = await axios.post('/adminapi/clubs/leaderchange', { newLeader: newLeader.value.userid, clubid: clubInfo.value.club_id })
+    if(res.data.success){
+        ElNotification({
+            title: '更换成功',
+            message: `${newLeader.value.username} 已成为 ${clubInfo.value.club_name} 新指导老师`,
+            type: 'success'
+        }),
+        getData()
+        leaderChangeDialog.value = false
+    }else{
+        ElNotification({
+            title: '操作失败',
+            message: res.data.message,
+            type: 'error'
+        })
+    }
+}
+const getLeaderInfo = async () => {
+    if (newLeader.value.userid.length === 10) {
+        const res = await axios.get(`/adminapi/clubs/leaderinfo/${newLeader.value.userid}`)
+        if (res.data.data) {
+            newLeader.value = res.data.data
+        } else {
+            ElMessage.error('未找到老师信息!')
+            for (var i in newLeader.value) {
+                if (i !== 'userid') {
+                    newLeader.value[i] = ''
+                }
+            }
+        }
+    }
+}
+
 // 修改社团信息
 const clubInfoDialog = ref(false)
 // 头像上传显示
@@ -218,6 +298,64 @@ const updateClubInfo = async (form) => {
 </script>
 
 <style lang="scss" scoped>
+:deep(.el-dialog) {
+    border-radius: 15px;
+    margin: 0 auto;
+    margin-top: 75px;
+
+    .el-dialog__header {
+        font-weight: 100;
+
+        .el-dialog__title {
+            color: rgb(64, 158, 255);
+        }
+    }
+
+    .el-dialog__footer {
+        text-align: center;
+    }
+}
+
+:deep(.leaderChangeDialog) {
+    border-radius: 15px;
+
+    .el-dialog__header {
+        font-weight: 100;
+    }
+
+    .el-dialog__body {
+        &>div {
+            font-size: 16px;
+            font-weight: 100;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0;
+
+            img {
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                margin-right: 10px;
+            }
+
+            .el-input {
+                width: 200px;
+            }
+        }
+
+        .institute {
+            span {
+                display: inline-block;
+                height: 20px;
+                padding: 2px 5px;
+                border: 1px solid #494949;
+            }
+        }
+    }
+
+}
+
 .male {
     background: linear-gradient(-45deg, rgba(64, 158, 255, 0.2), rgba(85, 231, 252, 0.2));
 }
@@ -226,9 +364,136 @@ const updateClubInfo = async (form) => {
     background: linear-gradient(-45deg, rgba(123, 90, 255, 0.1), rgba(255, 91, 181, 0.1));
 }
 
-.el-card{
+.leader {
+    background: linear-gradient(15deg, gold, orange);
+    color: white;
+
+    &:hover {
+        background: linear-gradient(15deg, gold, orange);
+
+        .delete {
+            z-index: -1 !important;
+        }
+
+        .ministerchange {
+            z-index: -1 !important;
+        }
+    }
+
+    .memberinfo {
+        width: 110px;
+
+        .username {
+            position: relative;
+
+            span {
+                display: inline-block;
+                width: 30px;
+                position: absolute;
+                right: 10px;
+                text-align: center;
+                font-size: 12px;
+                border: 1px solid white;
+                border-radius: 20px;
+                padding: 2px;
+            }
+        }
+
+        .time {
+            color: white !important;
+        }
+    }
+
+}
+
+.minister-male {
+    background: linear-gradient(15deg, #417dff, #55e7fc);
+    color: white;
+
+    &:hover {
+        background: linear-gradient(15deg, #417dff, #55e7fc);
+
+        .delete {
+            z-index: -1 !important;
+        }
+
+        .ministerchange {
+            z-index: -1 !important;
+        }
+    }
+
+    .memberinfo {
+        width: 110px;
+
+        .username {
+            position: relative;
+
+            span {
+                display: inline-block;
+                width: 30px;
+                position: absolute;
+                right: 10px;
+                text-align: center;
+                font-size: 12px;
+                border: 1px solid white;
+                border-radius: 20px;
+                padding: 2px;
+            }
+        }
+
+        .time {
+            color: white !important;
+        }
+    }
+
+}
+
+.minister-female {
+    background: linear-gradient(15deg, #a58fff, #ff8fcd);
+    color: white;
+
+    &:hover {
+        background: linear-gradient(15deg, #a58fff, #ff8fcd);
+
+        .delete {
+            z-index: -1 !important;
+        }
+
+        .ministerchange {
+            z-index: -1 !important;
+        }
+    }
+
+    .memberinfo {
+        width: 110px;
+
+        .username {
+            position: relative;
+
+            span {
+                display: inline-block;
+                width: 30px;
+                position: absolute;
+                right: 10px;
+                text-align: center;
+                font-size: 12px;
+                border: 1px solid white;
+                border-radius: 20px;
+                padding: 2px;
+            }
+        }
+
+        .time {
+            color: white !important;
+        }
+    }
+
+}
+
+.el-card {
     margin-top: 10px;
 }
+
 .container {
     height: 590px;
     display: flex;
@@ -284,10 +549,11 @@ const updateClubInfo = async (form) => {
             }
         }
 
-        .type{
+        .type {
             margin-top: 10px;
             text-align: center;
-            span{
+
+            span {
                 font-size: 14px;
                 display: inline-block;
                 padding: 5px;
@@ -370,35 +636,6 @@ const updateClubInfo = async (form) => {
             flex-wrap: wrap;
             gap: 20px;
 
-            .minister {
-                background: linear-gradient(15deg, #417dff, #55e7fc);
-                color: white;
-
-                &:hover {
-                    background: linear-gradient(15deg, #417dff, #55e7fc);
-                }
-
-                .memberinfo {
-                    .username {
-                        span {
-                            display: inline-block;
-                            width: 30px;
-                            text-align: center;
-                            margin-left: 10px;
-                            font-size: 12px;
-                            border: 1px solid white;
-                            border-radius: 20px;
-                            padding: 2px;
-                        }
-                    }
-
-                    .time {
-                        color: white;
-                    }
-                }
-
-            }
-
             li {
                 width: 200px;
                 height: 80px;
@@ -408,6 +645,7 @@ const updateClubInfo = async (form) => {
                 border-radius: 10px;
                 position: relative;
                 overflow: hidden;
+                user-select: none;
                 cursor: pointer;
 
                 &:hover {
@@ -511,12 +749,14 @@ const updateClubInfo = async (form) => {
     overflow: hidden;
     width: 100%;
     height: 100%;
+    border-radius: 50%;
     object-fit: cover;
     object-position: center;
     position: absolute;
     top: 0;
     left: 0;
 }
+
 .bgimg-uploader .bgimg {
     display: block;
     position: absolute;
@@ -533,12 +773,14 @@ const updateClubInfo = async (form) => {
 
 :deep(.avatar-uploader .el-upload) {
     border: 1px solid var(--el-border-color);
-    border-radius: 6px;
+    border-radius: 50%;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     transition: var(--el-transition-duration-fast);
+    margin-right: 20px;
 }
+
 :deep(.bgimg-uploader .el-upload) {
     width: 350px;
     border: 1px solid var(--el-border-color);
@@ -552,6 +794,7 @@ const updateClubInfo = async (form) => {
 :deep(.avatar-uploader .el-upload:hover) {
     border-color: var(--el-color-primary);
 }
+
 :deep(.bgimg-uploader .el-upload:hover) {
     border-color: var(--el-color-primary);
 }
@@ -563,6 +806,7 @@ const updateClubInfo = async (form) => {
     height: 178px;
     text-align: center;
 }
+
 :deep(.el-icon.bgimg-uploader-icon) {
     font-size: 28px;
     color: #8c939d;

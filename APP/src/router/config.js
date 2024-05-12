@@ -26,7 +26,7 @@ const backstageRoutes = [
     {
         path:'club/clubstatistics',
         component: () => import('@/views/backstage/club/ClubStatistics.vue'),
-        requireAdmin: true
+        requireAdmin: 9
     },
     {
         path:'club/clubnews',
@@ -39,7 +39,7 @@ const backstageRoutes = [
     {
         path:'club/clublist',
         component: () => import('@/views/backstage/club/ClubList.vue'),
-        requireAdmin: true
+        requireAdmin: 9
     },
     {
         path:'club/applyconfirm',
@@ -54,19 +54,24 @@ const backstageRoutes = [
         component: () => import('@/views/backstage/activity/ActivityList.vue')
     },
     {
+        path:'activity/activitypermit',
+        component: () => import('@/views/backstage/activity/ActivityPermit.vue'),
+        requireAdmin:5
+    },
+    {
         path:'users/userlist',
         component: () => import('@/views/backstage/users/UserList.vue'),
-        requireAdmin: true
+        requireAdmin: 9
     },
     {
         path:'users/useradd',
         component: () => import('@/views/backstage/users/UserAdd.vue'),
-        requireAdmin: true
+        requireAdmin: 9
     },
     {
         path:'notice',
         component: () => import('@/views/backstage/notice/Notice.vue'),
-        requireAdmin: true
+        requireAdmin: 9
     },
     {
         path:'/:pathMatch(.*)*',

@@ -115,7 +115,7 @@ const ConfigRouter = () => {
 const checkPermission = (item) => {
     const store = useHomeStore()
     if (item.requireAdmin) {
-        return store.userInfo.role === 9
+        return store.userInfo.role >= item.requireAdmin
     }
     return true
 }

@@ -7,7 +7,9 @@
                     <el-avatar :size="140" :src="avatarUrl" />
                     <h5 class="id">ID:{{ store.userInfo.userid }}</h5>
                     <h3 class="name">{{ store.userInfo.username }}</h3>
-                    <h5 class="authorization">{{ store.userInfo.role === 9 ? '管理员' : '社长' }}</h5>
+                    <div class="authorization">
+                        <span>{{ store.userInfo.role === 9 ? '管理员' : store.userInfo.role === 5 ?'指导老师':'社长' }}</span>
+                    </div>
                 </el-card>
                 <el-card style="border-radius: 20px">
                     <template #header>
@@ -282,12 +284,16 @@ async function submitForm(userForm) {
     }
 
     .authorization {
-        font-weight: 500;
-        width: 50px;
-        background-color: white;
+        text-align: center;
         color: rgb(92, 174, 255);
-        border-radius: 5px;
         margin: 5px auto;
+        span{
+            background-color: white;
+            font-size: 14px;
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
     }
 }
 

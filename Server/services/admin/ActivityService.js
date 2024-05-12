@@ -8,7 +8,7 @@ const ExcelJS = require('exceljs')
 
 const ActivityService = {
     // 新增活动时，选择社团。该接口负责返回所有社团名称及其ID
-    getClubNames: async () => {
+    getClubNames: async (clubid) => {
         try {
             const res = await promisePool.query(`select club_id,club_name from tb_clubs`)
             return { success: true, data: res[0] }
@@ -27,18 +27,29 @@ const ActivityService = {
             let poster = files.poster ? `/activityUploads/${files.poster[0].filename}` : ''
             let file = files.file ? `${files.file[0].originalname} /activityUploads/${files.file[0].filename}` : ''
 
-            await promisePool.query(`insert into tb_activities(activity_name,activity_content,club_id,activity_place,activity_start,activity_end,activity_poster,activity_file) values(?,?,?,?,?,?,?,?)`, [name, content, club, place, start, end, poster, file])
+            await promisePool.query(`insert into tb_activities(activity_name,activity_content,club_id,activity_place,activity_start,activity_end,activity_poster,activity_file,permission) values(?,?,?,?,?,?,?,?,?)`, [name, content, club, place, start, end, poster, file,0])
             return { success: true, message: '活动添加成功！' }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
     // 获取活动列表
-    actvtListGet: async ({ page, size, club_id }) => {
+    actvtListGet: async ({ page, size, club_id, permit }) => {
         try {
-            const where1 = club_id ? `where a.club_id=${club_id}` : ''
-            const where2 = club_id ? `where club_id=${club_id}` : ''
-            var result = await promisePool.query(`SELECT a.*, c.club_name FROM tb_activities a JOIN tb_clubs c ON a.club_id = c.club_id ${where1} ORDER BY activity_id DESC limit ${size} offset ${(page - 1) * size}`)
+            let where1
+            let where2
+            let order
+            if (permit === 'true') {
+                where1 = club_id ? `where a.club_id=${club_id} and a.permission=1` : 'where a.permission=1'
+                where2 = club_id ? `where club_id=${club_id} and permission=1` : 'where permission=1'
+                order = 'ORDER BY activity_id DESC'
+            } else {
+                where1 = club_id ? `where a.club_id=${club_id}` : ''
+                where2 = club_id ? `where club_id=${club_id}` : ''
+                order = 'ORDER BY permission'
+            }
+
+            var result = await promisePool.query(`SELECT a.*, c.club_name FROM tb_activities a JOIN tb_clubs c ON a.club_id = c.club_id ${where1} ${order} limit ${size} offset ${(page - 1) * size}`)
             var count = await promisePool.query(`select count(*) as total from tb_activities ${where2}`)
             // 格式化时间
             dateTime.dateTimeFormat(result[0], 'activity_start')
@@ -50,7 +61,7 @@ const ActivityService = {
         }
     },
     // 筛选活动
-    actvtFilter: async ({ form, page, size, club_id }) => {
+    actvtFilter: async ({ form, page, size, club_id, permit }) => {
         try {
             dateTime.dateTimeFormat([form], 'activity_start')
             let where = 'where '
@@ -89,9 +100,8 @@ const ActivityService = {
     // 下载活动报名表
     downloadForm: async (id) => {
         const registration = await promisePool.query(`select registration from tb_activities where activity_id=?`, [id])
-        const registers = registration[0][0].registration.slice(1, -1)
+        const registers = registration[0][0].registration.slice(0, -1)
         const registersList = await promisePool.query(`select userid,username,institute,major,classid from tb_users where userid in (${registers})`)
-
         // 创建一个新的工作簿
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('报名表');
@@ -103,18 +113,26 @@ const ActivityService = {
             { header: '专业', key: 'major', width: 25 },
             { header: '班级', key: 'classid', width: 8 }
         ];
-
         // 将数据添加至表格中
         registersList[0].forEach(item => {
             worksheet.addRow(item)
         })
-
         // 将工作簿写入文件
-        const filePath = path.join(__dirname,`students.xlsx`);
+        const filePath = path.join(__dirname, `students.xlsx`);
         await workbook.xlsx.writeFile(filePath)
         const data = fs.readFileSync(filePath)
         return data
     },
+    // 活动审核
+    activityCheck: async ({ id, permission }) => {
+        try {
+            permission = permission ? 1 : 2
+            await promisePool.query(`update tb_activities set permission=${permission} where activity_id=?`, [id])
+            return { success: true, message: permission===1?'已通过该活动申请！':'已驳回该活动申请！' }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！', error }
+        }
+    }
 }
 
 // 删除文件

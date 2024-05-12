@@ -48,22 +48,28 @@
                         <span style="color: rgb(64,158,255);font-weight: bold;">{{ scope.row.members }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column prop="club_leader" label="指导老师">
+                    <template #default="scope">
+                        <el-tag effect="plain" round checked @click="showMinister(scope.row.club_leader)"
+                            style="cursor: pointer;user-select: none;" v-show="scope.row.leader" type="warning">
+                            {{ scope.row.leader }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="club_minister" label="社长/会长">
                     <template #default="scope">
                         <el-tag effect="plain" round checked @click="showMinister(scope.row.club_minister)"
                             style="cursor: pointer;user-select: none;">
-                            {{ scope.row.username }}
+                            {{ scope.row.minister }}
                         </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="200">
+                <el-table-column label="操作" width="120">
                     <template #default="scope">
-                        <el-button type="primary" plain round @click="gotoClub(scope.row.club_id)"
-                            :icon="List">详情</el-button>
-                        <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
+                        <el-popconfirm title="确认解散该社团?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
                             cancel-button-text="取消" confirm-button-type="danger" @confirm="clubDelete(scope.row)">
                             <template #reference>
-                                <el-button type="danger" round :icon="Delete">删除</el-button>
+                                <el-button type="danger" round :icon="Delete">解散</el-button>
                             </template>
                         </el-popconfirm>
                     </template>
@@ -88,13 +94,17 @@
                         <el-option v-for="item in belongs" :key="item" :label="item" :value="item" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="社团介绍" prop="club_profile">
-                    <el-input v-model="clubForm.club_profile" type="textarea" resize="none" show-word-limit
-                        maxlength="200" rows="5" />
+                <el-form-item label="指导老师" prop="club_leader">
+                    <el-input v-model="clubForm.club_leader" @change="checkLeader(clubForm.club_leader)"
+                        placeholder="请输入指导老师ID" />
                 </el-form-item>
                 <el-form-item label="社长分配" prop="club_minister">
                     <el-input v-model="clubForm.club_minister" @change="checkMinister(clubForm.club_minister)"
                         placeholder="请输入社长ID" />
+                </el-form-item>
+                <el-form-item label="社团介绍" prop="club_profile">
+                    <el-input v-model="clubForm.club_profile" type="textarea" resize="none" show-word-limit
+                        maxlength="100" rows="4" />
                 </el-form-item>
                 <el-form-item label="社团头像" prop="club_avatar">
                     <el-upload class="avatar-uploader" action="" :show-file-list="false"
@@ -117,10 +127,10 @@
             </template>
         </el-dialog>
 
-        <!-- 显示社长信息 -->
-        <el-drawer v-model="drawer" title="I am the title" direction="ltr" :with-header="false" class="cardDrawer"
+        <!-- 显示人员卡片信息 -->
+        <el-drawer v-model="drawer" direction="ltr" :with-header="false" class="cardDrawer"
             :size="540" :destroy-on-close="true">
-            <div :class="ministerForm.gender == 0 ? ['card', 'female'] : ['card', 'male']">
+            <div :class="{'card':true,'leader':ministerForm.role==5,'male':ministerForm.gender!==0,'female':ministerForm.gender===0}">
                 <div class="header">
                     <img
                         :src="ministerForm.avatar ? 'http://localhost:3000' + ministerForm.avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'">
@@ -138,9 +148,9 @@
                     </div>
                     <div class="major">
                         <span
-                            :style="ministerForm.gender == 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
+                            :style="{color: ministerForm.role==5?'rgb(255,195,0)':ministerForm.gender==0?'rgb(212,143,229)':'rgb(118,189,255)'}">{{
                                 ministerForm.institute }}</span>
-                        <div>{{ ministerForm.major }} 丨 {{ ministerForm.classid }}</div>
+                        <div v-show="ministerForm.major">{{ ministerForm.major }} 丨 {{ ministerForm.classid }}</div>
                     </div>
                     <div class="profile">
                         <div class="title">个人简介</div>
@@ -225,6 +235,7 @@ const clubForm = reactive({
     club_profile: '',
     club_birth: '',
     club_belong: '',
+    club_leader: '',
     club_minister: '',
     club_type: '',
     file: null
@@ -246,15 +257,38 @@ const clubFormRules = reactive({
     ],
     club_minister: [
         { required: true, message: '请分配社长', trigger: 'blur' },
-    ]
+    ],
+    club_leader: [
+        { required: true, message: '请分配指导老师', trigger: 'blur' },
+    ],
 })
+// 检查指导老师分配合法性
+function checkLeader(userid) {
+    if (userid.length != 10) {
+        ElMessage.error("ID应为10位数字")
+        clubForm.club_leader = ''
+    } else {
+        axios.get(`/adminapi/clubs/addclub/leader/${userid}`).then(res => {
+            let result = res.data.data
+            if (result.club.length !== 0) {
+                ElMessage.error(`该用户为 ${result.club[0].club_name} 指导老师，请勿重复分配！`)
+                clubForm.club_leader = ''
+            } else if (result.user.length === 0) {
+                ElMessage.error("用户不存在！请确保ID正确！")
+                clubForm.club_leader = ''
+            } else {
+                clubForm.club_leader = userid
+            }
+        })
+    }
+}
 // 检查社长分配合法性
 function checkMinister(userid) {
     if (userid.length != 10) {
-        ElMessage.error("社长ID应为10位")
+        ElMessage.error("ID应为10位数字")
         clubForm.club_minister = ''
     } else {
-        axios.get(`/adminapi/clubs/addclub/${userid}`).then(res => {
+        axios.get(`/adminapi/clubs/addclub/minister/${userid}`).then(res => {
             let result = res.data.data
             if (result.club.length !== 0) {
                 ElMessage.error(`该用户为 ${result.club[0].club_name} 的社长，请勿重复分配！`)
@@ -439,6 +473,10 @@ const gotoClub = (id) => {
     background: linear-gradient(45deg, #6395ff, #8df0ff);
 }
 
+.leader{
+    background: linear-gradient(to bottom, gold, orange);
+}
+
 :deep(.cardDrawer) {
     background-color: transparent !important;
     box-shadow: none !important;
@@ -446,37 +484,35 @@ const gotoClub = (id) => {
     .el-drawer__body {
         background: transparent;
         padding: 45px 20px;
+        display: flex;
+        align-items: center;
 
         .card {
             user-select: none;
-            width: 500px;
-            height: 650px;
+            width: 400px;
+            height: 520px;
             box-sizing: border-box;
             padding: 20px;
             border-radius: 20px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
-            // background: linear-gradient(to bottom, #94c6ff, #4583ff);
-            // background: linear-gradient(45deg, #6395ff, #8df0ff);
             color: white;
 
             .header {
                 width: 100%;
                 text-align: center;
+                margin-top: 20px;
 
-                /* background-color: red; */
                 img {
-                    width: 200px;
-                    height: 200px;
+                    width: 150px;
+                    height: 150px;
                     border: 2px solid white;
                     border-radius: 100px;
                 }
             }
 
             .center {
-
-                /* background-color: red; */
                 .id {
                     text-align: center;
                     font-size: 14px;
@@ -509,18 +545,16 @@ const gotoClub = (id) => {
                     padding: 0;
                     margin-top: 15px;
                     text-align: center;
-                    font-size: 20px;
+                    font-size: 18px;
                     line-height: 20px;
 
-                    /* background-color: red; */
                     span {
                         padding: 2px;
                         font-weight: 500;
-                        font-size: 14px;
+                        font-size: 12px;
                         line-height: 20px;
                         background-color: white;
                         border-radius: 5px;
-                        color: rgb(118, 189, 255);
                     }
 
                     div {
@@ -529,29 +563,29 @@ const gotoClub = (id) => {
                 }
 
                 .profile {
-                    margin-top: 40px;
+                    margin-top: 20px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
 
                     .title {
-                        width: 80%;
+                        width: 90%;
                         text-align: center;
                         color: rgba(255, 255, 255, 0.7);
+                        font-size: 14px;
                         padding-bottom: 5px;
                         border-bottom: 1px solid white;
                     }
 
                     .content {
-                        /* background-color: red; */
-                        width: 80%;
+                        width: 90%;
                         height: 160px;
                         margin-top: 10px;
+                        font-size: 12px;
                         color: rgba(255, 255, 255, 0.7);
-                        text-indent: 2rem;
+                        text-indent: 2em;
                         overflow: auto;
 
-                        /* 自定义滚动条样式 */
                         scrollbar-width: thin;
                         scrollbar-color: rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0);
                     }
@@ -559,15 +593,15 @@ const gotoClub = (id) => {
             }
 
             .footer {
-                /* background-color: red; */
                 padding: 0;
                 margin: 0;
                 text-align: center;
-                font-size: 42px;
+                font-size: 35px;
                 font-weight: 600;
                 color: rgba(255, 255, 255, 0.1);
                 position: absolute;
                 bottom: 0;
+                left: 10px;
             }
 
         }

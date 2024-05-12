@@ -20,7 +20,8 @@ activityRouter.post("/adminapi/activities/addactivity",activityUpload.fields([
 activityRouter.delete("/adminapi/activities/delete",ActivityController.activityDelete)
 // 下载活动报名表
 activityRouter.get("/adminapi/activities/download",ActivityController.downloadForm)
-
+// 活动审核
+activityRouter.put("/adminapi/activities/check",ActivityController.activityCheck)
 
 
   module.exports = activityRouter

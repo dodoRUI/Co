@@ -3,7 +3,7 @@ const ActivityService = require('../../services/admin/ActivityService')
 const ActivityController = {
     // 返回所有俱乐部ID及其名称，给前端做选择器的Option
     getClubNames: async (req, res) => {
-        const result = await ActivityService.getClubNames()
+        const result = await ActivityService.getClubNames(req.query.clubid)
         res.send(result)
     },
     // 新增活动
@@ -38,7 +38,12 @@ const ActivityController = {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename="students.xlsx"');
         res.send(data)
-    }
+    },
+    // 活动审核
+    activityCheck: async (req, res) => {
+        const result = await ActivityService.activityCheck(req.body)
+        res.send(result)
+    },
 }
 
 module.exports = ActivityController

@@ -16,6 +16,11 @@ const ClubController = {
         const result = await ClubService.checkMinister(req.params.userid)
         res.send(result)
     },
+    // 新增社团分配指导老师，查看该用户是否存在以及是其他社团指导老师
+    checkLeader: async (req, res) => {
+        const result = await ClubService.checkLeader(req.params.userid)
+        res.send(result)
+    },
     // 新增社团
     clubAdd: async (req, res) => {
         req.body.club_avatar = req.file ? `/clubAvatarUploads/${req.file.filename}` : ""
@@ -61,6 +66,16 @@ const ClubController = {
     // 更换社长
     ministerChange: async (req, res) => {
         const result = await ClubService.ministerChange(req.body)
+        res.send(result)
+    },
+    // 查询指导老师
+    leaderSearch:async(req,res)=>{
+        const result = await ClubService.leaderSearch(req.params.id)
+        res.send(result)
+    },
+    // 更换指导老师
+    leaderChange:async(req,res)=>{
+        const result = await ClubService.leaderChange(req.body)
         res.send(result)
     },
     // 修改社团信息

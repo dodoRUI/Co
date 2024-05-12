@@ -8,14 +8,15 @@ const BCRYPT = require('../../utils/BCRYPT')
 const JWT = require("../../utils/JWT")
 
 const UserService = {
-    // 登录验证
     login: async ({ userid, password, stage }) => {
         try {
-            const tip = stage ? 'and (role=9 or role=1)' : ''
+            const tip = stage ? 'and (role=9 or role=1 or role=5)' : ''
             const user = await promisePool.query(`select * from tb_users where userid=? ${tip}`, [userid])
+            // 密码验证
             if (user[0][0]&&BCRYPT.compare(password, user[0][0].password)) {
-                if (user[0][0].role == 1) {
-                    const clubid = await promisePool.query(`select club_id from tb_clubs where club_minister=?`, [userid])
+                if (user[0][0].role === 1 || user[0][0].role === 5) {
+                    console.log(111111111111)
+                    const clubid = await promisePool.query(`select club_id from tb_clubmembers where userid=?`, [userid])
                     user[0][0].club_id = clubid[0][0].club_id
                 }
                 return user[0]
@@ -87,8 +88,9 @@ const UserService = {
     },
     // 添加用户
     userAdd: async ({ userid, username, gender, institute, major, classid, profile, role, avatar }) => {
+        const password = BCRYPT.encrypt('swust'+userid)
         try {
-            await promisePool.query(`insert into tb_users(userid,username,gender,institute,major,classid,profile,role,avatar) values(?,?,?,?,?,?,?,?,?)`, [userid, username, gender, institute, major, classid, profile, role, avatar])
+            await promisePool.query(`insert into tb_users(userid,username,password,gender,institute,major,classid,profile,role,avatar) values(?,?,?,?,?,?,?,?,?,?)`, [userid, username, password, gender, institute, major, classid, profile, role, avatar])
             return { success: true, message: '添加成功！' }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }

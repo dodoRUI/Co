@@ -11,7 +11,7 @@
                             <el-input v-model="actvtForm.name" />
                         </el-form-item>
                         <el-form-item label="承办社团" prop="club">
-                            <el-select v-model="actvtForm.club" filterable placeholder="请选择社团">
+                            <el-select v-model="actvtForm.club" filterable placeholder="请选择社团" :disabled="store.userInfo.role!==9">
                                 <el-option v-for="item in clubs" :key="item.club_name" :label="item.club_name"
                                     :value="item.club_id" />
                             </el-select>
@@ -70,12 +70,14 @@ import { genFileId } from 'element-plus'
 import { Promotion, Plus } from '@element-plus/icons-vue'
 import upload from '@/utils/upload'
 import formatDateTime from '@/utils/formatDateTime'
+import {useHomeStore} from '@/stores/home'
 
 const clubs = ref([])
+const store = useHomeStore()
 onMounted(async () => {
-    await axios.get('/adminapi/activities/clubnames').then(res => {
-        clubs.value = res.data.data
-    })
+    const clubid = store.userInfo.role==9?'':store.userInfo.club_id
+    const res = await axios.get('/adminapi/activities/clubnames',{params:{clubid}})
+    clubs.value = res.data.data
 })
 
 // 添加活动
@@ -84,7 +86,7 @@ const actvtForm = reactive({
     period: [],
     name: '',
     content: '',
-    club: '',
+    club: store.userInfo.club_id,
     place: '',
     posterUrl: '',
     poster: null,
@@ -173,7 +175,7 @@ const resetForm = () => {
     actvtForm.period = []
     actvtForm.name = ''
     actvtForm.content = ''
-    actvtForm.club = ''
+    actvtForm.club = store.userInfo.clubid
     actvtForm.place = ''
     actvtForm.posterUrl = ''
     actvtForm.poster = null

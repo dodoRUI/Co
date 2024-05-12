@@ -1,13 +1,14 @@
 <template>
     <div>
-        <el-page-header icon="" title="活动中心" content="活动赛事"></el-page-header>
+        <el-page-header icon="" title="活动中心" content="活动审核"></el-page-header>
         <el-card class="filterPannel">
             <div class="search">
                 <el-input v-model="actvtFilterForm.activity_name" style="width: 240px" placeholder="活动名称"
                     :prefix-icon="Search" />
                 <el-button type="primary" round :icon="Search" @click="actvtFilter(actvtFilterForm)">查询</el-button>
                 <el-button type="default" plain round @click="reset">清除</el-button>
-                <el-select v-model="actvtFilterForm.activity_club" filterable placeholder="只显示该社团活动" v-if="store.userInfo.role==9">
+                <el-select v-model="actvtFilterForm.activity_club" filterable placeholder="只显示该社团活动"
+                    v-if="store.userInfo.role == 9">
                     <el-option v-for="item in clubs" :key="item.club_name" :label="item.club_name"
                         :value="item.club_id" />
                 </el-select>
@@ -44,26 +45,21 @@
                 </el-table-column>
                 <el-table-column prop="activity_place" label="活动地点">
                 </el-table-column>
-                <el-table-column label="活动状态">
+                <el-table-column label="操作" width="300px">
                     <template #default="scope">
-                        <div v-if="new Date(scope.row.activity_end) < new Date()"><el-tag type="info" round>已结束</el-tag>
+                        <div v-if="scope.row.permission===0">
+                            <el-button type="success" plain round @click="actvtCheck(scope.row.activity_id,true)"
+                                :icon="Check">通过</el-button>
+                            <el-popconfirm title="确认驳回申请?" :icon="Warning" icon-color="#ff0000" confirm-button-text="确认"
+                                cancel-button-text="取消" confirm-button-type="danger" @confirm="actvtCheck(scope.row.activity_id,false)">
+                                <template #reference>
+                                    <el-button type="danger" round plain :icon="Close">驳回</el-button>
+                                </template>
+                            </el-popconfirm>
                         </div>
-                        <div v-else-if="new Date(scope.row.activity_start) < new Date() &&
-                            new Date(scope.row.activity_end) > new Date()">
-                            <el-tag type="warning" round>进行中</el-tag>
+                        <div v-else>
+                            <el-tag :type="scope.row.permission===1?'primary':'danger'">{{ scope.row.permission===1?'已通过':'已驳回' }}</el-tag>
                         </div>
-                        <div v-else><el-tag type="primary" round>未开始</el-tag></div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" width="200px">
-                    <template #default="scope">
-                        <el-button type="primary" plain round @click="downloadSignUpForm(scope.row)" :icon="List">报名表</el-button>
-                        <el-popconfirm title="确认删除?" :icon="Warning" icon-color="#ff0000" confirm-button-text="删除"
-                            cancel-button-text="取消" confirm-button-type="danger" @confirm="actvtDelete(scope.row)">
-                            <template #reference>
-                                <el-button type="danger" circle :icon="Delete"></el-button>
-                            </template>
-                        </el-popconfirm>
                     </template>
                 </el-table-column>
             </el-table>
@@ -82,14 +78,13 @@
                     <div v-html="actvtDetailForm.activity_content"></div>
                 </div>
             </div>
-
         </el-drawer>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { Delete, List, Plus, Search } from '@element-plus/icons-vue'
+import { Delete, List, Search, Check, Close } from '@element-plus/icons-vue'
 import { ElMessage, ElNotification } from 'element-plus'
 import axios from 'axios'
 import { useHomeStore } from '@/stores/home'
@@ -123,10 +118,10 @@ const sizeChange = () => {
     }
 }
 
-// 获取所有活动
+// 获取所有审核活动
 const getActvtList = async (page, size) => {
-    const club_id = store.userInfo.role==9 ? '' : store.userInfo.club_id
-    let res = await axios.get(`/adminapi/activities/list`, { params: { club_id, page, size,permit:true } })
+    const club_id = store.userInfo.role == 9 ? '' : store.userInfo.club_id
+    let res = await axios.get(`/adminapi/activities/list`, { params: { club_id, page, size, permit: false } })
     tableData.value = res.data.data
     total.value = res.data.total
 }
@@ -181,27 +176,23 @@ const shortcuts = [
     }
 ]
 
-// 下载报名表
-const downloadSignUpForm = async (actvt)=>{
-    const res = await axios.get(`/adminapi/activities/download`,{ params: {id:actvt.activity_id}, responseType: "blob" })
-    const url = URL.createObjectURL(res.data)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `${actvt.activity_name}报名表.xlsx`)
-    link.click()
-    URL.revokeObjectURL(url)
-}
-
-// 删除活动
-const actvtDelete = async (actvt) => {
-    let res = await axios.delete(`/adminapi/activities/delete`, { params: { actvt } })
-    ElNotification({
-        title: res.data.success?'删除成功!':'删除失败',
-        message: res.data.success?`${actvt.activity_name} 已删除`:res.data.message,
-        type: res.data.success?'success':'error',
-        duration: 2000
-    })
-    getActvtList()
+// 活动审核
+const actvtCheck = async (id,permission) => {
+    const res = await axios.put('/adminapi/activities/check', {id,permission})
+    if(res.data.success){
+        ElNotification({
+            title: '操作成功',
+            message: res.data.message,
+            type: 'success'
+        })
+    }else{
+        ElNotification({
+            title: '失败',
+            message: '服务器出错，请稍后再试',
+            type: 'error'
+        })
+    }
+    getActvtList(currentPage.value, pageSize.value)
 }
 
 // 显示活动详情

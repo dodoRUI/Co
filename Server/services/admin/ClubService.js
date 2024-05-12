@@ -9,10 +9,9 @@ const ClubService = {
     // 获取所有社团信息
     clubListGet: async () => {
         try {
-            const result = await promisePool.query(`SELECT tb_clubs.*, tb_users.username FROM tb_clubs
-        JOIN tb_users ON tb_clubs.club_minister = tb_users.userid`)
+            const result = await promisePool.query(`SELECT c.*,u1.username AS minister,u2.username AS leader FROM tb_clubs c JOIN 
+            tb_users u1 ON c.club_minister = u1.userid LEFT JOIN tb_users u2 ON c.club_leader = u2.userid`)
             dateTime.dateFormat(result[0], 'club_birth')
-
             return { success: true, data: result[0] }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
@@ -30,7 +29,7 @@ const ClubService = {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
-    // 再新增社团分配社长时查看该用户是否已经是社长或者是否存在
+    // 新增社团分配社长时查看该用户是否已经是社长或者是否存在
     checkMinister: async (userid) => {
         try {
             let club = await promisePool.query(`select club_name from tb_clubs where club_minister=?`, [userid])
@@ -41,11 +40,25 @@ const ClubService = {
             return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
+    // 新增社团分配指导老师时查看该用户是否已经是指导老师或者是否存在
+    checkLeader: async (userid) => {
+        try {
+            let club = await promisePool.query(`select club_name from tb_clubs where club_leader=?`, [userid])
+            let user = await promisePool.query(`select username from tb_users where userid=?`, [userid])
+
+            return { success: true, data: { club: club[0], user: user[0] } }
+        } catch (error) {
+            return { success: false, message: '服务器出错，请稍后再试！', error }
+        }
+    },
     // 新增社团
-    clubAdd: async ({ club_name, club_avatar, club_profile, club_birth, club_belong, club_minister, club_type }) => {
+    clubAdd: async ({ club_name, club_avatar, club_profile, club_birth, club_belong,club_leader, club_minister, club_type }) => {
         try {
             await promisePool.query('START TRANSACTION')
-            await promisePool.query(`insert into tb_clubs(club_name,club_avatar,club_profile,club_birth,club_belong,club_minister,members,club_type) values(?,?,?,?,?,?,?)`, [club_name, club_avatar, club_profile, club_birth, club_belong, club_minister, 1, club_type])
+            await promisePool.query(`insert into tb_clubs(club_name,club_avatar,club_profile,club_birth,club_belong,club_leader,club_minister,members,club_type) values(?,?,?,?,?,?,?,?,?)`, [club_name, club_avatar, club_profile, club_birth, club_belong, club_leader, club_minister, 1, club_type])
+            const clubid = await promisePool.query(`select club_id from tb_clubs where club_minister=?`,[club_minister])
+            await promisePool.query(`insert into tb_clubmembers (club_id,userid,join_time,user_role) values(?,?,?,?)`, [clubid[0][0].club_id,club_minister,new Date(),1])
+            await promisePool.query(`insert into tb_clubmembers (club_id,userid,join_time,user_role) values(?,?,?,?)`, [clubid[0][0].club_id,club_leader,new Date(),5])
             await promisePool.query(`update tb_users set role=1 where userid=?`, [club_minister])
             await promisePool.query('COMMIT')
 
@@ -64,6 +77,7 @@ const ClubService = {
             }
             await promisePool.query('START TRANSACTION')
             await promisePool.query(`delete from tb_clubs where club_id=?`, [club_id])
+            await promisePool.query(`delete from tb_clubmembers where club_id=?`, [club_id])
             await promisePool.query(`update tb_users set role=0 where userid=?`, [club_minister])
             await promisePool.query('COMMIT')
             return { success: true, message: '删除成功' }
@@ -118,7 +132,7 @@ const ClubService = {
     clubStarsGet: async () => {
         try {
             const result = await promisePool.query(`SELECT club_id, club_name,club_avatar, club_star FROM tb_clubs`)
-        // console.log(result[0])
+            // console.log(result[0])
             return { success: true, data: result[0] }
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
@@ -128,10 +142,15 @@ const ClubService = {
     // 获取社团详细信息
     clubInfoGet: async (id) => {
         try {
-            const info = await promisePool.query(`SELECT c.*,u.userid,u.username FROM tb_clubs c LEFT JOIN 
-        tb_users u ON c.club_minister = u.userid WHERE c.club_id=?`, [id])
-            const members = await promisePool.query(`SELECT u.userid,u.username,u.gender,u.institute,u.major,u.classid,u.avatar,cm.join_time FROM tb_clubmembers cm 
-        LEFT JOIN tb_users u ON cm.userid = u.userid WHERE cm.club_id=?`, [id])
+            const info = await promisePool.query(`SELECT * FROM tb_clubs WHERE club_id=?`, [id])
+            const members = await promisePool.query(`SELECT u.userid,u.username,u.gender,u.avatar,cm.join_time,cm.user_role FROM tb_clubmembers cm LEFT JOIN tb_users u ON cm.userid = u.userid WHERE cm.club_id=? and user_role=?`, [id, 0])
+            const minister = await promisePool.query(`SELECT u.userid,u.username,u.gender,u.avatar,cm.join_time,cm.user_role FROM tb_clubmembers cm LEFT JOIN tb_users u ON cm.userid = u.userid WHERE cm.club_id=? and user_role=?`, [id, 1])
+            const leader = await promisePool.query(`SELECT u.userid,u.username,u.gender,u.avatar,u.institute,cm.join_time,cm.user_role FROM tb_clubmembers cm LEFT JOIN tb_users u ON cm.userid = u.userid WHERE cm.club_id=? and user_role=?`, [id, 5])
+            members[0].unshift(minister[0][0])
+            if (leader[0].length) {
+                leader[0][0].club = info[0][0].club_name
+                members[0].unshift(leader[0][0])
+            }
             dateTime.dateFormat(info[0], "club_birth")
             dateTime.dateFormat(members[0], "join_time")
 
@@ -174,20 +193,47 @@ const ClubService = {
             return { success: false, message: '操作失败', error };
         }
     },
+    // 查询指导老师
+    leaderSearch: async (id) => {
+        const res = await promisePool.query(`SELECT userid,username,institute,avatar,gender FROM tb_users WHERE userid=?`, [id])
+        const club = await promisePool.query(`SELECT c.club_name FROM tb_clubs c LEFT JOIN tb_clubmembers cm ON c.club_id = cm.club_id WHERE cm.userid=?`, [id])
+        if(club[0][0]){
+            res[0][0].club = club[0][0].club_name
+        }
+        return { data: res[0][0] }
+    },
+    // 更换指导老师
+    leaderChange: async ({ newLeader,clubid }) => {
+        try {
+            let oldLeader = await promisePool.query(`select club_leader from tb_clubs where club_id=?`, [clubid])
+            oldLeader = oldLeader[0][0]?.club_leader
+            await promisePool.query('START TRANSACTION')
+            if(oldLeader){
+                await promisePool.query(`delete from tb_clubmembers where club_id=? and user_role=5`, [clubid])
+            }
+            await promisePool.query(`insert into tb_clubmembers (club_id,userid,join_time,user_role) values(?,?,?,?)`, [clubid,newLeader,new Date(),5])
+            await promisePool.query(`update tb_clubs set club_leader=? where club_id=?`, [newLeader,clubid])
+            await promisePool.query('COMMIT')
+            return { success: true, message: '操作成功' }
+        } catch (error) {
+            await promisePool.query('ROLLBACK');
+            return { success: false, message: '操作失败', error }
+        }
+    },
     // 修改社团信息
     clubUpdate: async ({ club_name, club_avatar, club_profile, club_id, club_background }) => {
         try {
             await promisePool.query(`UPDATE tb_clubs SET club_name=?,club_avatar=?,club_profile=?,club_background=? WHERE club_id=?`, [club_name, club_avatar, club_profile, club_background, club_id])
             return { success: true, message: '操作成功' };
         } catch (error) {
-            return { success: false, message: '操作失败', error }
+            return { success: false, message: '服务器出错，请稍后再试！', error }
         }
     },
 
     // 获取申请信息
     clubApplyGet: async ({ role, club_id }) => {
         try {
-            const where = role == 1 ? `where apply_club=${club_id}` : ''
+            const where = role==9 ? '' : `where apply_club=${club_id}`
             const result = await promisePool.query(`SELECT A.*, U.username,C.club_name FROM tb_applications A JOIN tb_users U ON A.apply_user = U.userid JOIN 
         tb_clubs C ON A.apply_club = C.club_id ${where} ORDER BY A.apply_time DESC`)
             dateTime.dateFormat(result[0], 'apply_time')
@@ -211,9 +257,9 @@ const ClubService = {
         }
     },
     // 拒绝申请
-    clubApplyRefuse: async ({ apply_club,apply_user }) => {
+    clubApplyRefuse: async ({ apply_club, apply_user }) => {
         try {
-            await promisePool.query(`DELETE FROM tb_applications WHERE apply_club=? and apply_user=?`, [apply_club,apply_user])
+            await promisePool.query(`DELETE FROM tb_applications WHERE apply_club=? and apply_user=?`, [apply_club, apply_user])
             return { success: true, message: '操作成功' };
         } catch (error) {
             return { success: false, message: '服务器出错，请稍后再试！', error }
@@ -222,7 +268,7 @@ const ClubService = {
     // 首页显示待处理申请数量
     applyNumGet: async ({ role, club_id }) => {
         try {
-            const where = role == 1 ? `where apply_club=${club_id}` : ''
+            const where = role==1||role==5 ? `where apply_club=${club_id}` : ''
             const result = await promisePool.query(`SELECT COUNT(*) AS num FROM tb_applications ${where}`)
             return { success: true, data: result[0][0] };
         } catch (error) {

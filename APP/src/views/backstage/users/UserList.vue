@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!-- <el-page-header icon="" title="用户管理" content="用户列表"></el-page-header> -->
         <el-card class="userSearch">
             <el-button type="danger" @click="showDeleteDialog" round>批量删除</el-button>
             <el-input v-model="filterUserForm.userid" style="width: 150px" placeholder="用户ID" :prefix-icon="Place" />
@@ -77,6 +76,9 @@
                         </div>
                         <div v-else-if="scope.row.role == 1">
                             <el-tag type="primary">社长</el-tag>
+                        </div>
+                        <div v-else-if="scope.row.role == 5">
+                            <el-tag type="warning">指导老师</el-tag>
                         </div>
                         <div v-if="scope.row.role == 0">
                             <el-tag type="info">用户</el-tag>
@@ -170,10 +172,10 @@
             </template>
         </el-dialog>
 
-        <el-drawer v-model="drawer" direction="rtl" :with-header="false" class="cardDrawer" :size="540"
-            :destroy-on-close="true">
+        <!-- 用户卡片 -->
+        <el-drawer v-model="drawer" direction="rtl" :with-header="false" class="cardDrawer" :destroy-on-close="true">
             <div
-                :class="userinfo.role == 9 ? ['card', 'admin'] : (userinfo.gender === 0 ? ['card', 'female'] : ['card', 'male'])">
+                :class="{'card':true,'admin':userinfo.role==9,'leader':userinfo.role==5,'male':userinfo.gender!==0,'female':userinfo.gender===0}">
                 <div class="header">
                     <img
                         :src="userinfo.avatar ? 'http://localhost:3000' + userinfo.avatar : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'">
@@ -191,9 +193,10 @@
                     </div>
                     <div class="major" v-show="userinfo.institute">
                         <span
-                            :style="userinfo.gender == 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
-                                userinfo.institute }}</span>
-                        <div>{{ userinfo.major }} 丨 {{ userinfo.classid }}</div>
+                            :style="{color: userinfo.role==9?'rgb(255,73,73)':userinfo.role==5?'rgb(255,195,0)':userinfo.gender==0?'rgb(212,143,229)':'rgb(118,189,255)'}">
+                            {{userinfo.institute }}
+                        </span>
+                        <div v-show="userinfo.major">{{ userinfo.major }} 丨 {{ userinfo.classid }}</div>
                     </div>
                     <div class="profile">
                         <div class="title">个人简介</div>
@@ -238,11 +241,7 @@ const genderOptions = [
     {
         label: "女",
         value: 0
-    },
-    {
-        label: "保密",
-        value: -1
-    },
+    }
 ]
 // 分页查询
 var total = ref(0)
@@ -490,7 +489,11 @@ const showClub = async (user) => {
 }
 
 .admin {
-    background: linear-gradient(to bottom, #000000, #444444);
+    background: linear-gradient(to bottom, #ff6565, #ff2c2c);
+}
+
+.leader{
+    background: linear-gradient(to bottom, gold, orange);
 }
 
 .cardDrawer {
@@ -499,30 +502,29 @@ const showClub = async (user) => {
 
     .el-drawer__body {
         background: transparent;
-        padding: 45px 20px;
+        display: flex;
+        align-items: center;
 
         .card {
             user-select: none;
-            width: 500px;
-            height: 650px;
+            width: 400px;
+            height: 520px;
             box-sizing: border-box;
             padding: 20px;
             border-radius: 20px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
-            // background: linear-gradient(to bottom, #94c6ff, #4583ff);
-            // background: linear-gradient(45deg, #6395ff, #8df0ff);
             color: white;
 
             .header {
                 width: 100%;
                 text-align: center;
+                margin-top: 20px;
 
-                /* background-color: red; */
                 img {
-                    width: 200px;
-                    height: 200px;
+                    width: 150px;
+                    height: 150px;
                     border: 2px solid white;
                     border-radius: 100px;
                 }
@@ -530,7 +532,6 @@ const showClub = async (user) => {
 
             .center {
 
-                /* background-color: red; */
                 .id {
                     text-align: center;
                     font-size: 14px;
@@ -563,18 +564,16 @@ const showClub = async (user) => {
                     padding: 0;
                     margin-top: 15px;
                     text-align: center;
-                    font-size: 20px;
+                    font-size: 18px;
                     line-height: 20px;
 
-                    /* background-color: red; */
                     span {
                         padding: 2px;
                         font-weight: 500;
-                        font-size: 14px;
+                        font-size: 12px;
                         line-height: 20px;
                         background-color: white;
                         border-radius: 5px;
-                        color: rgb(118, 189, 255);
                     }
 
                     div {
@@ -583,29 +582,29 @@ const showClub = async (user) => {
                 }
 
                 .profile {
-                    margin-top: 40px;
+                    margin-top: 20px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
 
                     .title {
-                        width: 80%;
+                        width: 90%;
                         text-align: center;
                         color: rgba(255, 255, 255, 0.7);
                         padding-bottom: 5px;
+                        font-size: 14px;
                         border-bottom: 1px solid white;
                     }
 
                     .content {
-                        /* background-color: red; */
-                        width: 80%;
+                        width: 90%;
                         height: 160px;
                         margin-top: 10px;
+                        font-size: 12px;
                         color: rgba(255, 255, 255, 0.7);
-                        text-indent: 2rem;
+                        text-indent: 2em;
                         overflow: auto;
 
-                        /* 自定义滚动条样式 */
                         scrollbar-width: thin;
                         scrollbar-color: rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0);
                     }
@@ -613,15 +612,15 @@ const showClub = async (user) => {
             }
 
             .footer {
-                /* background-color: red; */
                 padding: 0;
                 margin: 0;
                 text-align: center;
-                font-size: 42px;
+                font-size: 35px;
                 font-weight: 600;
                 color: rgba(255, 255, 255, 0.1);
                 position: absolute;
                 bottom: 0;
+                left: 10px;
             }
 
         }

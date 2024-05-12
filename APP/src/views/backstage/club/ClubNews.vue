@@ -174,7 +174,7 @@ const sizeChange = () => {
 // 获取社团资讯列表
 const newsData = ref([])
 const getClubNews = async (page = 1, size = 10) => {
-    const clubid = store.userInfo.role == 1 ? store.userInfo.club_id : ''
+    const clubid = store.userInfo.role==9? '' : store.userInfo.club_id
     const res = await axios.get('/adminapi/clubs/clubnews/get', { params: { clubid, page, size } })
     newsData.value = res.data.data.list
     total.value = res.data.data.total

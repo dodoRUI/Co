@@ -57,6 +57,7 @@
                         <el-form-item label="权限" prop="role">
                             <el-radio-group v-model="userForm.role">
                                 <el-radio-button label="管理员" value="9" />
+                                <el-radio-button label="指导老师" value="5" />
                                 <el-radio-button label="用户" value="0" />
                             </el-radio-group>
                         </el-form-item>
@@ -69,8 +70,9 @@
                         </div>
                     </el-form>
                 </el-card>
+                
                 <div
-                    :class="userForm.role == 9 ? ['card', 'admin'] : (userForm.gender === 0 ? ['card', 'female'] : ['card', 'male'])">
+                    :class="{'card':true,'admin':userForm.role==9,'leader':userForm.role==5,'male':userForm.gender!==0,'female':userForm.gender===0}">
                     <div class="header">
                         <img :src="userForm.avatar" v-show="userForm.avatar">
                     </div>
@@ -86,9 +88,10 @@
                             </span>
                         </div>
                         <div class="major">
-                            <span v-show="userForm.gender"
-                                :style="userForm.gender === 0 ? { color: 'rgb(212,143,229)' } : { color: 'rgb(118,189,255)' }">{{
-                                    userForm.institute }}</span>
+                            <span v-show="userForm.institute"
+                                :style="{color: userForm.role==9?'rgb(255,73,73)':userForm.role==5?'rgb(255,195,0)':userForm.gender==0?'rgb(212,143,229)':'rgb(118,189,255)'}">
+                                {{userForm.institute }}
+                            </span>
                             <div v-show="userForm.major">{{ userForm.major }} 丨 {{ userForm.classid }}</div>
                         </div>
                         <div class="profile" v-show="userForm.profile">
@@ -136,11 +139,7 @@ const genderOptions = [
     {
         label: "女",
         value: 0
-    },
-    {
-        label: "保密",
-        value: -1
-    },
+    }
 ]
 
 // 头像上传显示
@@ -180,7 +179,6 @@ const userFormRef = ref()
 const submitForm = async (form) => {
     await form.validate(async (valid) => {
         if (valid) {
-            userForm.gender = userForm.gender ? userForm.gender : -1
             if (!userForm.repeat) {
                 const res = await upload('/adminapi/users/adduser', userForm)
                 if (res.success) {
@@ -225,7 +223,11 @@ function resetForm() {
 }
 
 .admin {
-    background: linear-gradient(to bottom, #000000, #444444);
+    background: linear-gradient(to bottom, #ff6565, #ff2c2c);
+}
+
+.leader{
+    background: linear-gradient(to bottom, gold, orange);
 }
 
 .warning {
@@ -240,6 +242,7 @@ function resetForm() {
 
 .cardbody {
     display: flex;
+    align-items: center;
 
     :deep(.el-card__body) {
         padding: 0 0;
@@ -253,34 +256,31 @@ function resetForm() {
     }
 
     .card {
-        width: 500px;
-        height: 650px;
+        width: 400px;
+        height: 520px;
         box-sizing: border-box;
+        margin-left: 100px;
         padding: 20px;
-        border-radius: 10px;
-        /* text-align: center; */
+        border-radius: 20px;
         position: relative;
         overflow: hidden;
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
-        // background: linear-gradient(to bottom, #94c6ff, #4583ff);
         color: white;
 
         .header {
             width: 100%;
             text-align: center;
+            margin-top: 20px;
 
-            /* background-color: red; */
             img {
-                width: 200px;
-                height: 200px;
+                width: 150px;
+                height: 150px;
                 border: 2px solid white;
                 border-radius: 100px;
             }
         }
 
         .center {
-
-            /* background-color: red; */
             .id {
                 text-align: center;
                 font-size: 14px;
@@ -313,18 +313,16 @@ function resetForm() {
                 padding: 0;
                 margin-top: 15px;
                 text-align: center;
-                font-size: 20px;
+                font-size: 18px;
                 line-height: 20px;
 
-                /* background-color: red; */
                 span {
                     padding: 2px;
                     font-weight: 500;
-                    font-size: 14px;
+                    font-size: 12px;
                     line-height: 20px;
                     background-color: white;
                     border-radius: 5px;
-                    color: #80aaff;
                 }
 
                 div {
@@ -333,13 +331,13 @@ function resetForm() {
             }
 
             .profile {
-                margin-top: 40px;
+                margin-top: 20px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
 
                 .title {
-                    width: 80%;
+                    width: 90%;
                     text-align: center;
                     color: rgba(255, 255, 255, 0.7);
                     padding-bottom: 5px;
@@ -347,15 +345,14 @@ function resetForm() {
                 }
 
                 .content {
-                    /* background-color: red; */
-                    width: 80%;
+                    width: 90%;
                     height: 160px;
                     margin-top: 10px;
+                    font-size: 14px;
                     color: rgba(255, 255, 255, 0.7);
-                    text-indent: 2rem;
+                    text-indent: 2em;
                     overflow: auto;
 
-                    /* 自定义滚动条样式 */
                     scrollbar-width: thin;
                     scrollbar-color: rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0);
                 }
@@ -363,15 +360,15 @@ function resetForm() {
         }
 
         .footer {
-            /* background-color: red; */
             padding: 0;
             margin: 0;
             text-align: center;
-            font-size: 42px;
+            font-size: 35px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.1);
             position: absolute;
             bottom: 0;
+            left: 10px;
         }
 
     }
