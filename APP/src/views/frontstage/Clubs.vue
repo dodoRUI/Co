@@ -168,7 +168,6 @@ const allClubsList = ref([])
 const getData = async () => {
     const res = await axios.get('/frontapi/show/votesrank')
     allClubsList.value = [...res.data.data]
-    console.log(allClubsList.value)
     const data = res.data.data.sort((a, b) => b.club_star - a.club_star)
     top10List.value = data.slice(0, 10)
 

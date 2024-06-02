@@ -89,7 +89,6 @@ const startType = ref(false)
 const isMounted = ref(false)
 onMounted(async () => {
     window.addEventListener('scroll', () => {
-        console.log(window.scrollY)
         if (window.scrollY >= 300) {
             startType.value = true
         } else {
